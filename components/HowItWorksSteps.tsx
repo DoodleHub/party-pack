@@ -37,10 +37,6 @@ const steps: Step[] = [
   },
 ];
 
-function stepImageAspectRatio(image: StaticImageData) {
-  return `${image.width} / ${image.height}`;
-}
-
 export function HowItWorksSteps() {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pb-16 sm:px-10">
@@ -62,15 +58,12 @@ export function HowItWorksSteps() {
                 {step.number}
               </span>
               <div className="flex items-center gap-4">
-                <div
-                  className="w-36 shrink-0 overflow-hidden rounded-xl"
-                  style={{ aspectRatio: stepImageAspectRatio(step.image) }}
-                >
+                <div className="aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-36">
                   <Image
                     src={step.image}
                     alt={step.alt}
-                    className="h-full w-full object-cover"
-                    sizes="144px"
+                    className="h-full w-full object-contain"
+                    sizes="(min-width: 640px) 144px, 96px"
                   />
                 </div>
                 <div>

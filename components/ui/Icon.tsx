@@ -82,3 +82,70 @@ export function PlusIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function ShieldIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M12 3.5 18.5 6v5c0 4.5-2.9 7.8-6.5 9.5-3.6-1.7-6.5-5-6.5-9.5V6L12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function HeartIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M12 20.25c-.3 0-.59-.1-.83-.28C7.4 17.2 3 13.4 3 9.5 3 6.9 5.1 4.8 7.7 4.8c1.5 0 2.9.7 3.8 1.9.9-1.2 2.3-1.9 3.8-1.9 2.6 0 4.7 2.1 4.7 4.7 0 3.9-4.4 7.7-8.17 10.47-.24.18-.53.28-.83.28Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function StarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="m12 3.5 2.2 4.9 5.3.5-4 3.6 1.2 5.3L12 15.2l-4.7 2.6 1.2-5.3-4-3.6 5.3-.5L12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function TrophyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M8 4h8v4a4 4 0 0 1-8 0V4Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 5H5.5a2 2 0 0 0 0 4c.4.9 1.1 1.6 2 2.1M16 5h2.5a2 2 0 0 1 0 4c-.4.9-1.1 1.6-2 2.1"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 12v3.5M9.5 19.5h5l-.5-3h-4l-.5 3Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
