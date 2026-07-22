@@ -1,33 +1,7 @@
 import Link from "next/link";
 import { GameCard } from "@/components/GameCard";
 import { ArrowRightIcon } from "@/components/ui/Icon";
-import surveyShowdownImage from "@/public/games/survey-showdown.png";
-import yakuzaImage from "@/public/games/yakuza.png";
-import koupImage from "@/public/games/koup.png";
-
-const games = [
-  {
-    slug: "survey-showdown",
-    name: "Survey Showdown",
-    image: surveyShowdownImage,
-    players: "2–8 Players",
-    description: "Survey says… can you guess the top answers?",
-  },
-  {
-    slug: "yakuza",
-    name: "Yakuza",
-    image: yakuzaImage,
-    players: "6–12 Players",
-    description: "Find the yakuza hiding among you—before it's too late.",
-  },
-  {
-    slug: "koup",
-    name: "Koup",
-    image: koupImage,
-    players: "2–6 Players",
-    description: "Bluff, deceive, and outsmart your way to victory.",
-  },
-];
+import { games } from "@/lib/games";
 
 export function FeaturedGames() {
   return (

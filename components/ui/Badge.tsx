@@ -1,6 +1,6 @@
 import { HTMLAttributes } from "react";
 
-type BadgeVariant = "primary" | "muted" | "outline";
+type BadgeVariant = "primary" | "muted" | "outline" | "card";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -10,6 +10,9 @@ const variantClasses: Record<BadgeVariant, string> = {
   primary: "bg-primary-tint text-primary",
   muted: "bg-surface-alt text-muted",
   outline: "border border-muted/30 text-ink",
+  // Fixed light background, for use inside always-light surfaces (e.g. GameCard)
+  // that don't flip in dark mode — bg-surface-alt/text-muted would mismatch there.
+  card: "bg-card-hover text-card-muted",
 };
 
 export function Badge({ variant = "primary", className = "", ...props }: BadgeProps) {
