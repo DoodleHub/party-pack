@@ -1,15 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ControllerIcon } from "@/components/ui/Icon";
 
 const navLinks = [
-  { label: "Home", href: "/", active: true },
+  { label: "Home", href: "/" },
   { label: "Games", href: "/games" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "About", href: "/about" },
 ];
 
 export function Header() {
+  const pathname = usePathname();
+
   return (
     <header className="border-b border-ink/5 bg-surface">
       <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-6 sm:px-10">
@@ -26,7 +31,7 @@ export function Header() {
               key={link.href}
               href={link.href}
               className={
-                link.active
+                pathname === link.href
                   ? "border-b-2 border-primary pb-1 text-sm font-medium text-primary"
                   : "pb-1 text-sm font-medium text-ink/80 transition-colors hover:text-ink"
               }
