@@ -122,11 +122,11 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
       <div className="relative z-10 flex flex-1 flex-col">
         <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10">
           <Link
-            href="/games"
+            href="/games/survey-showdown"
             className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md"
           >
             <ArrowRightIcon className="h-4 w-4 rotate-180" />
-            Back to Games
+            Back to Lobby
           </Link>
 
           <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md">

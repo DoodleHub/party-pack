@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Select } from "@/components/ui/Select";
+import { AvatarStack } from "@/components/ui/AvatarStack";
 
 const swatches = [
   { name: "Primary", token: "primary", hex: "#6C4DD3", className: "bg-primary" },
@@ -12,6 +17,8 @@ const swatches = [
 ];
 
 export default function StyleGuidePage() {
+  const [sort, setSort] = useState("recent");
+
   return (
     <div className="flex flex-1 flex-col bg-surface font-sans">
       <main className="mx-auto flex w-full max-w-4xl flex-col gap-16 px-6 py-16 sm:px-10">
@@ -91,6 +98,27 @@ export default function StyleGuidePage() {
               <p className="mt-1 text-sm text-muted">Highlighted / selected state.</p>
             </Card>
           </div>
+        </section>
+
+        <section className="flex flex-col gap-6">
+          <h2 className="text-lg font-semibold text-ink">Select</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              label="Sort"
+              value={sort}
+              onChange={setSort}
+              options={[
+                { value: "recent", label: "Recent" },
+                { value: "players", label: "Most Players" },
+                { value: "alphabetical", label: "Alphabetical" },
+              ]}
+            />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-6">
+          <h2 className="text-lg font-semibold text-ink">Avatar stack</h2>
+          <AvatarStack names={["Alex", "Jamie", "Sam", "Priya", "Chris", "Devon", "Mika"]} />
         </section>
       </main>
     </div>

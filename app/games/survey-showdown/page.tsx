@@ -1,11 +1,12 @@
-import { SurveyShowdownGame } from "@/components/SurveyShowdown/SurveyShowdownGame";
+import { GameLobby } from "@/components/GameLobby/GameLobby";
+import { surveyShowdownLobbyInfo, surveyShowdownRooms } from "@/components/SurveyShowdown/lobbyData";
 
-export default function SurveyShowdownPage() {
+export default function SurveyShowdownLobbyPage() {
   return (
-    <div className="flex flex-1 flex-col font-sans">
-      <main className="flex flex-1 flex-col">
-        <SurveyShowdownGame roomCode="X7K9P" />
-      </main>
-    </div>
+    <GameLobby
+      game={surveyShowdownLobbyInfo}
+      rooms={surveyShowdownRooms}
+      yourRoomCode="X7K9P"
+    />
   );
 }

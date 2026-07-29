@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      answers: {
+      survey_showdown_answers: {
         Row: {
           created_at: string
           id: string
@@ -41,15 +41,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "answers_question_id_fkey"
+            foreignKeyName: "survey_showdown_answers_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: false
-            referencedRelation: "questions"
+            referencedRelation: "survey_showdown_questions"
             referencedColumns: ["id"]
           },
         ]
       }
-      packs: {
+      survey_showdown_packs: {
         Row: {
           created_at: string
           id: string
@@ -70,7 +70,7 @@ export type Database = {
         }
         Relationships: []
       }
-      players: {
+      survey_showdown_players: {
         Row: {
           id: string
           name: string
@@ -91,15 +91,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "players_team_id_fkey"
+            foreignKeyName: "survey_showdown_players_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: "teams"
+            referencedRelation: "survey_showdown_teams"
             referencedColumns: ["id"]
           },
         ]
       }
-      questions: {
+      survey_showdown_questions: {
         Row: {
           created_at: string
           id: string
@@ -123,15 +123,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "questions_pack_id_fkey"
+            foreignKeyName: "survey_showdown_questions_pack_id_fkey"
             columns: ["pack_id"]
             isOneToOne: false
-            referencedRelation: "packs"
+            referencedRelation: "survey_showdown_packs"
             referencedColumns: ["id"]
           },
         ]
       }
-      room_rounds: {
+      survey_showdown_room_rounds: {
         Row: {
           id: string
           multiplier: number
@@ -161,22 +161,22 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "room_rounds_question_id_fkey"
+            foreignKeyName: "survey_showdown_room_rounds_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: false
-            referencedRelation: "questions"
+            referencedRelation: "survey_showdown_questions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "room_rounds_room_id_fkey"
+            foreignKeyName: "survey_showdown_room_rounds_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: "rooms"
+            referencedRelation: "survey_showdown_rooms"
             referencedColumns: ["id"]
           },
         ]
       }
-      rooms: {
+      survey_showdown_rooms: {
         Row: {
           active_team_slot: number
           code: string
@@ -215,15 +215,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "rooms_pack_id_fkey"
+            foreignKeyName: "survey_showdown_rooms_pack_id_fkey"
             columns: ["pack_id"]
             isOneToOne: false
-            referencedRelation: "packs"
+            referencedRelation: "survey_showdown_packs"
             referencedColumns: ["id"]
           },
         ]
       }
-      teams: {
+      survey_showdown_teams: {
         Row: {
           id: string
           name: string
@@ -247,10 +247,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "teams_room_id_fkey"
+            foreignKeyName: "survey_showdown_teams_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: "rooms"
+            referencedRelation: "survey_showdown_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -260,24 +260,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      advance_round: { Args: { p_room_id: string }; Returns: undefined }
-      change_pack: {
+      survey_showdown_advance_round: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_change_pack: {
         Args: { p_pack_id: string; p_room_id: string }
         Returns: undefined
       }
-      end_game: { Args: { p_room_id: string }; Returns: undefined }
-      reset_scores: { Args: { p_room_id: string }; Returns: undefined }
-      restart_game: { Args: { p_room_id: string }; Returns: undefined }
-      reveal_next_answer: { Args: { p_room_id: string }; Returns: undefined }
-      reveal_specific_answer: {
+      survey_showdown_end_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_reset_scores: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_restart_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_reveal_next_answer: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_reveal_specific_answer: {
         Args: { p_answer_id: string; p_room_id: string }
         Returns: undefined
       }
-      set_active_team: {
+      survey_showdown_set_active_team: {
         Args: { p_room_id: string; p_slot: number }
         Returns: undefined
       }
-      set_display_mode: {
+      survey_showdown_set_display_mode: {
         Args: { p_mode: string; p_room_id: string }
         Returns: undefined
       }

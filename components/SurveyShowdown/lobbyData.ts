@@ -1,0 +1,82 @@
+import surveyShowdownImage from "@/public/games/survey-showdown.png";
+import type { GameLobbyInfo, LobbyRoom } from "@/components/GameLobby/types";
+
+export const surveyShowdownLobbyInfo: GameLobbyInfo = {
+  slug: "survey-showdown",
+  name: "Survey Showdown",
+  cover: surveyShowdownImage,
+  players: "2–8 Players",
+  type: "Party",
+  description: "Survey says… can you guess the top answers?",
+  gameTime: "10–15 min",
+  difficulty: 2,
+  howToPlay: [
+    "Split into two teams.",
+    "Take turns guessing the top survey answers.",
+    "Steal points if the other team whiffs their guess.",
+    "Highest score after all rounds wins!",
+  ],
+};
+
+export const surveyShowdownRooms: LobbyRoom[] = [
+  {
+    code: "X7K9P",
+    name: "Office Trivia Night",
+    host: "Alex",
+    playerNames: ["Alex", "Jamie", "Sam", "Priya", "Chris"],
+    maxPlayers: 8,
+    status: "waiting",
+    visibility: "public",
+    createdAt: "2026-07-28T18:40:00Z",
+  },
+  {
+    code: "M3F8Q",
+    name: "Friday Family Feud",
+    host: "Sarah",
+    playerNames: ["Sarah", "Devon", "Mika", "Noah", "Liv", "Theo"],
+    maxPlayers: 6,
+    status: "in-progress",
+    visibility: "public",
+    createdAt: "2026-07-28T18:10:00Z",
+  },
+  {
+    code: "R2T5W",
+    name: "Roommate Rumble",
+    host: "Mike",
+    playerNames: ["Mike", "Elena", "Owen", "Kayla"],
+    maxPlayers: 4,
+    status: "full",
+    visibility: "public",
+    createdAt: "2026-07-28T17:55:00Z",
+  },
+  {
+    code: "H9D4L",
+    name: "Late Night Crew",
+    host: "Jess",
+    playerNames: ["Jess", "Marcus", "Tara"],
+    maxPlayers: 6,
+    status: "starting-soon",
+    visibility: "public",
+    createdAt: "2026-07-28T19:02:00Z",
+  },
+  {
+    code: "B6N1V",
+    name: "Coworker Showdown",
+    host: "Tom",
+    playerNames: ["Tom", "Ana"],
+    maxPlayers: 8,
+    status: "waiting",
+    visibility: "public",
+    createdAt: "2026-07-28T16:30:00Z",
+  },
+  {
+    code: "P8C3Z",
+    name: "Book Club Bonus Round",
+    host: "Ren",
+    playerNames: ["Ren", "Grace"],
+    maxPlayers: 4,
+    status: "waiting",
+    visibility: "private",
+    createdAt: "2026-07-28T15:45:00Z",
+  },
+];

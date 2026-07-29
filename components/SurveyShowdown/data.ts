@@ -3,7 +3,7 @@ import type { RoomState } from "@/components/SurveyShowdown/types";
 
 export async function fetchRoomState(code: string): Promise<RoomState | null> {
   const { data: room, error: roomError } = await supabase
-    .from("rooms")
+    .from("survey_showdown_rooms")
     .select("*")
     .eq("code", code)
     .maybeSingle();
@@ -12,14 +12,14 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
 
   const [{ data: teams }, { data: rounds }] = await Promise.all([
     supabase
-      .from("teams")
-      .select("*, players(*)")
+      .from("survey_showdown_teams")
+      .select("*, players:survey_showdown_players(*)")
       .eq("room_id", room.id)
       .order("slot")
       .order("sort_order", { referencedTable: "players" }),
     supabase
-      .from("room_rounds")
-      .select("*, questions(prompt)")
+      .from("survey_showdown_room_rounds")
+      .select("*, questions:survey_showdown_questions(prompt)")
       .eq("room_id", room.id)
       .order("round_number"),
   ]);
@@ -29,7 +29,7 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
   let currentAnswers: RoomState["currentAnswers"] = [];
   if (currentRound) {
     const { data: answers } = await supabase
-      .from("answers")
+      .from("survey_showdown_answers")
       .select("*")
       .eq("question_id", currentRound.question_id)
       .order("rank");
@@ -71,17 +71,22 @@ export function subscribeToRoom(roomId: string, onChange: () => void) {
     .channel(`room-${roomId}`)
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
+      { event: "*", schema: "public", table: "survey_showdown_rooms", filter: `id=eq.${roomId}` },
       onChange,
     )
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "teams", filter: `room_id=eq.${roomId}` },
+      { event: "*", schema: "public", table: "survey_showdown_teams", filter: `room_id=eq.${roomId}` },
       onChange,
     )
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "room_rounds", filter: `room_id=eq.${roomId}` },
+      {
+        event: "*",
+        schema: "public",
+        table: "survey_showdown_room_rounds",
+        filter: `room_id=eq.${roomId}`,
+      },
       onChange,
     )
     .subscribe();
@@ -92,13 +97,16 @@ export function subscribeToRoom(roomId: string, onChange: () => void) {
 }
 
 export const revealNextAnswer = (roomId: string) =>
-  supabase.rpc("reveal_next_answer", { p_room_id: roomId });
+  supabase.rpc("survey_showdown_reveal_next_answer", { p_room_id: roomId });
 
 export const revealSpecificAnswer = (roomId: string, answerId: string) =>
-  supabase.rpc("reveal_specific_answer", { p_room_id: roomId, p_answer_id: answerId });
+  supabase.rpc("survey_showdown_reveal_specific_answer", {
+    p_room_id: roomId,
+    p_answer_id: answerId,
+  });
 
 export const advanceRound = (roomId: string) =>
-  supabase.rpc("advance_round", { p_room_id: roomId });
+  supabase.rpc("survey_showdown_advance_round", { p_room_id: roomId });
 
 export const setActiveTeam = (roomId: string, slot: 1 | 2) =>
-  supabase.rpc("set_active_team", { p_room_id: roomId, p_slot: slot });
+  supabase.rpc("survey_showdown_set_active_team", { p_room_id: roomId, p_slot: slot });
