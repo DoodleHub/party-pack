@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { GlobeIcon, LockIcon, PlusIcon, UsersIcon } from "@/components/ui/Icon";
+import { GlobeIcon, LockIcon, UsersIcon } from "@/components/ui/Icon";
 import heroImage from "@/public/games/home-hero.png";
 
 const stats = [
@@ -39,12 +39,6 @@ export function Hero() {
           <Link href="/games">
             <Button variant="primary" size="lg">
               Browse Games
-            </Button>
-          </Link>
-          <Link href="/rooms/new">
-            <Button variant="outline" size="lg">
-              <PlusIcon className="h-4 w-4" />
-              Create Room
             </Button>
           </Link>
         </div>

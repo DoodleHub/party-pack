@@ -1,7 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { PlusIcon } from "@/components/ui/Icon";
 import heroImage from "@/public/games/home-hero.png";
 
 export function GamesCta() {
@@ -17,15 +14,6 @@ export function GamesCta() {
           <p className="max-w-md text-muted">
             Invite friends, pick a game, and get the party started.
           </p>
-
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link href="/rooms/new">
-              <Button variant="primary" size="lg">
-                <PlusIcon className="h-4 w-4" />
-                Create Room
-              </Button>
-            </Link>
-          </div>
         </div>
 
         <div className="overflow-hidden rounded-3xl bg-surface">

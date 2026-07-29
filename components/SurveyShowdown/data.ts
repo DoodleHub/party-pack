@@ -1,5 +1,7 @@
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import type { RoomState } from "@/components/SurveyShowdown/types";
+
+const supabase = createClient();
 
 export async function fetchRoomState(code: string): Promise<RoomState | null> {
   const { data: room, error: roomError } = await supabase

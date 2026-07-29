@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { CloseIcon, ControllerIcon, MenuIcon } from "@/components/ui/Icon";
+import { HeaderAuth } from "@/components/HeaderAuth";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -49,7 +49,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <div className="hidden md:block">
-            <Button variant="dark">Sign In</Button>
+            <HeaderAuth />
           </div>
 
           <button
@@ -83,9 +83,9 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Button variant="dark" className="mt-2 w-full">
-            Sign In
-          </Button>
+          <div className="mt-2">
+            <HeaderAuth fullWidth />
+          </div>
         </nav>
       )}
     </header>

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { PlusIcon } from "@/components/ui/Icon";
 import footerImage from "@/public/how-it-works/footer.png";
 
 export function PartyCta() {
@@ -22,12 +21,6 @@ export function PartyCta() {
             <Link href="/games">
               <Button variant="primary" size="lg">
                 Browse Games
-              </Button>
-            </Link>
-            <Link href="/rooms/new">
-              <Button variant="outline" size="lg">
-                <PlusIcon className="h-4 w-4" />
-                Create Room
               </Button>
             </Link>
           </div>
