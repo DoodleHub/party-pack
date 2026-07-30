@@ -393,6 +393,18 @@ export type Database = {
         Args: { p_correct: boolean; p_room_id: string }
         Returns: undefined
       }
+      survey_showdown_announce_disconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_announce_left_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_announce_reconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
       survey_showdown_begin_round: {
         Args: { p_room_id: string }
         Returns: undefined
@@ -433,6 +445,14 @@ export type Database = {
         Returns: undefined
       }
       survey_showdown_normalize: { Args: { p_text: string }; Returns: string }
+      survey_showdown_post_countdown_tick: {
+        Args: { p_room_id: string; p_seconds_left: number }
+        Returns: undefined
+      }
+      survey_showdown_post_system_message: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: undefined
+      }
       survey_showdown_reassign_or_delete_room: {
         Args: { p_departing_user_id: string; p_room_id: string }
         Returns: undefined

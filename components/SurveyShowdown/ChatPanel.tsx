@@ -55,16 +55,22 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
         {messages.length === 0 ? (
           <p className="text-white/40">No messages yet.</p>
         ) : (
-          messages.map((m) => (
-            <p key={m.id} className="wrap-break-word">
-              <span
-                className={`font-semibold ${m.userId === senderId ? "text-primary" : "text-white/80"}`}
-              >
-                {m.name}:
-              </span>{" "}
-              <span className="text-white/90">{m.text}</span>
-            </p>
-          ))
+          messages.map((m) =>
+            m.userId === null ? (
+              <p key={m.id} className="text-center text-xs italic text-white/50">
+                {m.text}
+              </p>
+            ) : (
+              <p key={m.id} className="wrap-break-word">
+                <span
+                  className={`font-semibold ${m.userId === senderId ? "text-primary" : "text-white/80"}`}
+                >
+                  {m.name}:
+                </span>{" "}
+                <span className="text-white/90">{m.text}</span>
+              </p>
+            ),
+          )
         )}
         <div ref={bottomRef} />
       </div>

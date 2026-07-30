@@ -245,6 +245,7 @@ export function subscribeToPresence(
   userId: string,
   onSync: (onlineUserIds: Set<string>) => void,
   onLeave: (userId: string) => void,
+  onJoin: (userId: string) => void,
 ) {
   const channel = supabase.channel(`room-presence-${roomId}`, {
     config: { presence: { key: userId } },
@@ -256,6 +257,9 @@ export function subscribeToPresence(
     })
     .on("presence", { event: "leave" }, ({ key }: { key: string }) => {
       onLeave(key);
+    })
+    .on("presence", { event: "join" }, ({ key }: { key: string }) => {
+      onJoin(key);
     })
     .subscribe((status) => {
       if (status === "SUBSCRIBED") {
@@ -272,6 +276,27 @@ export async function startGame(roomId: string): Promise<{ error?: string }> {
   const { error } = await supabase.rpc("survey_showdown_start_game", { p_room_id: roomId });
   return error ? { error: error.message } : {};
 }
+
+export const postCountdownTick = (roomId: string, secondsLeft: number) =>
+  supabase.rpc("survey_showdown_post_countdown_tick", {
+    p_room_id: roomId,
+    p_seconds_left: secondsLeft,
+  });
+
+export const announceDisconnect = (roomId: string, playerId: string) =>
+  supabase.rpc("survey_showdown_announce_disconnect", {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  });
+
+export const announceReconnect = (roomId: string, playerId: string) =>
+  supabase.rpc("survey_showdown_announce_reconnect", {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  });
+
+export const announceLeftGame = (roomId: string) =>
+  supabase.rpc("survey_showdown_announce_left_game", { p_room_id: roomId });
 
 export async function getCurrentUser() {
   const { data } = await supabase.auth.getUser();

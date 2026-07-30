@@ -21,12 +21,16 @@ import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
 import {
   advanceRound,
+  announceDisconnect,
+  announceLeftGame,
+  announceReconnect,
   claimHost,
   expireTurn,
   fetchRoomState,
   getCurrentUser,
   joinTeam,
   leaveTeam,
+  postCountdownTick,
   removePlayer,
   revealAllAnswers,
   startGame,
@@ -212,8 +216,21 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
             removePlayer(current.roomId, player.id).then(refresh);
           } else if (current.status === "active" && current.hostId === leftUserId) {
             transferHost(current.roomId, leftUserId).then(refresh);
+          } else if (current.status === "active" && isHostRef.current) {
+            const player = current.teams
+              .flatMap((t) => t.players)
+              .find((p) => p.userId === leftUserId);
+            if (player) announceDisconnect(current.roomId, player.id);
           }
         }, DISCONNECT_GRACE_MS);
+      },
+      (joinedUserId) => {
+        const current = stateRef.current;
+        if (!current || current.status !== "active" || !isHostRef.current) return;
+        const player = current.teams
+          .flatMap((t) => t.players)
+          .find((p) => p.userId === joinedUserId);
+        if (player) announceReconnect(current.roomId, player.id);
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -281,8 +298,11 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
       if (!roomIdRef.current) return;
       if (statusRef.current === "waiting" && isPlayerRef.current) {
         leaveTeam(roomIdRef.current);
-      } else if (statusRef.current === "active" && isHostRef.current && userIdRef.current) {
-        transferHost(roomIdRef.current, userIdRef.current);
+      } else if (statusRef.current === "active" && isPlayerRef.current) {
+        announceLeftGame(roomIdRef.current);
+        if (isHostRef.current && userIdRef.current) {
+          transferHost(roomIdRef.current, userIdRef.current);
+        }
       }
     };
   }, []);
@@ -327,7 +347,12 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
 
   async function handleStartGame() {
     if (!state) return { error: "Room not loaded yet." };
-    const result = await startGame(state.roomId);
+    const roomId = state.roomId;
+    for (const secondsLeft of [5, 4, 3, 2, 1]) {
+      await postCountdownTick(roomId, secondsLeft);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    const result = await startGame(roomId);
     await refresh();
     return result;
   }
