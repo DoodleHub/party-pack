@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowRightIcon, ChatIcon } from "@/components/ui/Icon";
 import { fetchChatMessages, sendChatMessage, subscribeToChat } from "@/components/SurveyShowdown/data";
 import type { ChatMessage } from "@/components/SurveyShowdown/types";
@@ -14,6 +14,7 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,8 +30,11 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
     };
   }, [roomId]);
 
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+  // Runs synchronously after the new message is painted into the (fixed-height,
+  // scrollable) list, so the scroll jump happens before the user sees a flash
+  // of the list stuck at its old position.
+  useLayoutEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
   }, [messages]);
 
   async function handleSend() {
@@ -41,13 +45,13 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-black/50 p-4 text-white backdrop-blur-md 2xl:p-6">
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3 2xl:pb-4">
-        <ChatIcon className="h-4 w-4 text-primary 2xl:h-5 2xl:w-5" />
-        <h3 className="text-sm font-semibold 2xl:text-base">Chat</h3>
+    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-black/50 p-4 text-white backdrop-blur-md">
+      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+        <ChatIcon className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">Chat</h3>
       </div>
 
-      <div ref={listRef} className="mt-3 flex-1 space-y-2 overflow-y-auto pr-1 text-sm 2xl:space-y-3 2xl:text-base">
+      <div ref={listRef} className="mt-3 flex-1 space-y-2 overflow-y-auto pr-1 text-sm">
         {messages.length === 0 ? (
           <p className="text-white/40">No messages yet.</p>
         ) : (
@@ -62,9 +66,10 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
             </p>
           ))
         )}
+        <div ref={bottomRef} />
       </div>
 
-      <div className="mt-3 flex items-center gap-2 2xl:mt-4">
+      <div className="mt-3 flex items-center gap-2">
         <input
           type="text"
           value={draft}
@@ -73,15 +78,15 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
             if (e.key === "Enter") handleSend();
           }}
           placeholder="Say something…"
-          className="h-9 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none 2xl:h-11 2xl:px-5 2xl:text-base"
+          className="h-9 min-w-0 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
         />
         <button
           type="button"
           onClick={handleSend}
           aria-label="Send message"
-          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover 2xl:h-11 2xl:w-11"
+          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover"
         >
-          <ArrowRightIcon className="h-4 w-4 2xl:h-5 2xl:w-5" />
+          <ArrowRightIcon className="h-4 w-4" />
         </button>
       </div>
     </div>

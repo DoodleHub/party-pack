@@ -38,22 +38,22 @@ function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelPro
 
   return (
     <div
-      className={`rounded-2xl border bg-black/50 p-5 backdrop-blur-md transition-shadow 2xl:p-7 ${
+      className={`rounded-2xl border bg-black/50 p-5 backdrop-blur-md transition-shadow ${
         active ? "border-primary/60 shadow-[0_0_0_2px_var(--color-primary)]" : "border-white/10"
       }`}
     >
       <span
-        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white 2xl:px-4 2xl:py-1.5 2xl:text-sm ${style.badge}`}
+        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white ${style.badge}`}
       >
         {style.label}
       </span>
-      <div className="mt-3 flex items-end justify-between gap-3 2xl:mt-4">
-        <p className="text-4xl font-extrabold text-white 2xl:text-5xl">{team.score}</p>
-        <div className="flex items-center gap-1 pb-1 2xl:gap-1.5" title={`${team.strikes} / 3 strikes`}>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <p className="text-4xl font-extrabold text-white">{team.score}</p>
+        <div className="flex items-center gap-1 pb-1" title={`${team.strikes} / 3 strikes`}>
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold 2xl:h-6 2xl:w-6 2xl:text-xs ${
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                 i < team.strikes ? "bg-red-500 text-white" : "bg-white/10 text-white/30"
               }`}
             >
@@ -62,7 +62,7 @@ function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelPro
           ))}
         </div>
       </div>
-      <ul className="mt-4 flex flex-col gap-3 2xl:mt-5 2xl:gap-4">
+      <ul className="mt-4 flex flex-col gap-3">
         {team.players.map((player) => {
           const isUp = player.id === activePlayerId;
           const online = !!player.userId && onlineUserIds.has(player.userId);
@@ -70,7 +70,7 @@ function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelPro
             <li key={player.id} className="flex items-center gap-3">
               <span className="relative shrink-0">
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white 2xl:h-10 2xl:w-10 2xl:text-sm ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${
                     isUp ? "ring-2 ring-amber-400" : ""
                   }`}
                   style={{ backgroundColor: avatarColor(player.name) }}
@@ -79,15 +79,15 @@ function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelPro
                 </span>
                 <span
                   title={online ? "Online" : "Offline"}
-                  className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 2xl:h-3 2xl:w-3 ${
+                  className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 ${
                     online ? "bg-emerald-400" : "bg-zinc-400"
                   }`}
                 />
               </span>
-              <span className={`text-sm 2xl:text-base ${isUp ? "font-semibold text-white" : "text-white/90"}`}>
+              <span className={`text-sm ${isUp ? "font-semibold text-white" : "text-white/90"}`}>
                 {player.name}
               </span>
-              {isUp && <span className="text-xs font-semibold text-amber-400 2xl:text-sm">Up now</span>}
+              {isUp && <span className="text-xs font-semibold text-amber-400">Up now</span>}
             </li>
           );
         })}
@@ -110,7 +110,7 @@ export function TeamSidebar({
   onlineUserIds,
 }: TeamSidebarProps) {
   return (
-    <div className="flex flex-col gap-4 2xl:gap-6">
+    <div className="flex flex-col gap-4">
       {teams.map((team) => (
         <TeamPanel
           key={team.id}
