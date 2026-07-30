@@ -29,14 +29,14 @@ function AnswerRow({ rank, answer }: { rank: number; answer: Answer | undefined 
   const revealed = answer?.revealed ?? false;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-white/5 px-3 py-2.5 text-left sm:gap-4 sm:px-5 sm:py-3.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white sm:h-9 sm:w-9 sm:text-base">
+    <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-white/5 px-3 py-2.5 text-left sm:gap-4 sm:px-5 sm:py-3.5 2xl:gap-5 2xl:px-6 2xl:py-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white sm:h-9 sm:w-9 sm:text-base 2xl:h-11 2xl:w-11 2xl:text-lg">
         {rank}
       </span>
-      <span className="min-w-0 flex-1 text-base leading-tight font-semibold text-white sm:text-xl">
+      <span className="min-w-0 flex-1 text-base leading-tight font-semibold text-white sm:text-xl 2xl:text-2xl">
         {revealed ? answer!.text : ""}
       </span>
-      <span className="shrink-0 text-lg font-bold text-white sm:text-2xl">
+      <span className="shrink-0 text-lg font-bold text-white sm:text-2xl 2xl:text-3xl">
         {revealed ? answer!.points : 0}
       </span>
     </div>
@@ -122,8 +122,8 @@ export function GameStage({
   return (
     <div className="flex flex-col items-center">
       {stuck ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-red-400/40 bg-black/50 px-6 py-3 text-center text-white">
-          <p className="text-lg font-bold text-red-400">Both teams are out of chances!</p>
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-red-400/40 bg-black/50 px-6 py-3 text-center text-white 2xl:gap-3 2xl:px-8 2xl:py-4">
+          <p className="text-lg font-bold text-red-400 2xl:text-xl">Both teams are out of chances!</p>
           {isHost ? (
             <Button
               variant="primary"
@@ -137,7 +137,7 @@ export function GameStage({
                   : "Reveal All Answers"}
             </Button>
           ) : (
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-white/60 2xl:text-base">
               {allRevealed
                 ? "Waiting for the host to move to the next round…"
                 : "Waiting for the host to reveal the remaining answers…"}
@@ -145,13 +145,13 @@ export function GameStage({
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-6 py-3 text-center text-white">
-          <p className="text-sm">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-6 py-3 text-center text-white 2xl:gap-3 2xl:px-8 2xl:py-4">
+          <p className="text-sm 2xl:text-base">
             <span className={`font-bold ${TEAM_COLORS[activeTeamSlot]}`}>TEAM {activeTeamSlot}</span>
             {activePlayerName && <span className="text-white/70"> — {activePlayerName}&apos;s turn</span>}
           </p>
           <p
-            className={`text-3xl font-extrabold tabular-nums ${
+            className={`text-3xl font-extrabold tabular-nums 2xl:text-4xl ${
               remainingSeconds <= 5 ? "text-red-400" : "text-amber-400"
             }`}
           >
@@ -160,12 +160,12 @@ export function GameStage({
         </div>
       )}
 
-      <div className="relative mt-4 w-full rounded-2xl border-2 border-amber-400/60 bg-[#080f28]/90 p-5 shadow-[inset_0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-sm sm:p-8">
-        <h2 className="text-center text-2xl font-bold text-white sm:text-4xl">
+      <div className="relative mt-4 w-full rounded-2xl border-2 border-amber-400/60 bg-[#080f28]/90 p-5 shadow-[inset_0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-sm sm:p-8 2xl:p-12">
+        <h2 className="text-center text-2xl font-bold text-white sm:text-4xl 2xl:text-5xl">
           {prompt ?? "Loading question…"}
         </h2>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 2xl:grid-cols-2 2xl:gap-x-6">
+        <div className="mt-8 grid grid-cols-1 gap-4 2xl:mt-10 2xl:grid-cols-2 2xl:gap-x-8 2xl:gap-y-5">
           <div className="flex flex-col gap-4">
             {leftColumn.map((answer, i) => (
               <AnswerRow key={i} rank={i + 1} answer={answer} />
@@ -180,15 +180,15 @@ export function GameStage({
       </div>
 
       {!stuck && (
-        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-3">
+        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-3 2xl:max-w-xl 2xl:gap-4">
           {feedback && (
-            <p className={`text-sm font-semibold ${feedback.correct ? "text-emerald-400" : "text-red-400"}`}>
+            <p className={`text-sm font-semibold 2xl:text-base ${feedback.correct ? "text-emerald-400" : "text-red-400"}`}>
               {feedback.text}
             </p>
           )}
 
           {isMyTurn ? (
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full items-center gap-2 2xl:gap-3">
               <input
                 type="text"
                 value={draft}
@@ -199,14 +199,20 @@ export function GameStage({
                 placeholder="Type your answer…"
                 autoFocus
                 disabled={submitting}
-                className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+                className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none 2xl:h-14 2xl:px-5 2xl:text-lg"
               />
-              <Button variant="primary" size="lg" onClick={handleSubmit} disabled={submitting || !draft.trim()}>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleSubmit}
+                disabled={submitting || !draft.trim()}
+                className="2xl:h-14 2xl:px-8 2xl:text-lg"
+              >
                 {submitting ? "Sending…" : "Submit"}
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-white/60 2xl:text-base">
               Waiting for {activePlayerName ?? "the other player"} to answer…
             </p>
           )}

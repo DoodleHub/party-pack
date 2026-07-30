@@ -8,6 +8,7 @@ import {
   ArrowRightIcon,
   ClockIcon,
   CopyIcon,
+  LinkIcon,
   LockIcon,
   TrophyIcon,
   UsersIcon,
@@ -56,12 +57,36 @@ function RoomCodeChip({ code }: { code: string }) {
       type="button"
       onClick={handleCopy}
       title="Copy room code"
-      className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+      className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/20 2xl:gap-3 2xl:px-4 2xl:py-2"
     >
-      <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Room</span>
-      <span className="text-sm font-bold tracking-widest">{code}</span>
-      <CopyIcon className="h-4 w-4" />
-      {copied && <span className="text-xs">Copied</span>}
+      <span className="text-xs font-semibold uppercase tracking-wide text-white/60 2xl:text-sm">Room</span>
+      <span className="text-sm font-bold tracking-widest 2xl:text-base">{code}</span>
+      <CopyIcon className="h-4 w-4 2xl:h-5 2xl:w-5" />
+      {copied && <span className="text-xs 2xl:text-sm">Copied</span>}
+    </button>
+  );
+}
+
+function CopyRoomLinkButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(
+      `${window.location.origin}/games/survey-showdown/room/${code}`,
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Copy room link"
+      className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/20 2xl:gap-3 2xl:px-4 2xl:py-2"
+    >
+      <LinkIcon className="h-4 w-4 2xl:h-5 2xl:w-5" />
+      <span className="text-sm font-semibold 2xl:text-base">{copied ? "Copied!" : "Copy Link"}</span>
     </button>
   );
 }
@@ -72,22 +97,22 @@ function GameOverScreen({ state }: { state: RoomState }) {
   const tied = ranked.length > 1 && ranked[0].score === ranked[1].score;
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md">
-      <TrophyIcon className="h-10 w-10 text-amber-400" />
+    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md 2xl:max-w-2xl 2xl:gap-8 2xl:p-14">
+      <TrophyIcon className="h-10 w-10 text-amber-400 2xl:h-14 2xl:w-14" />
       <div>
-        <h1 className="text-3xl font-extrabold">Game Over</h1>
-        <p className="mt-2 text-white/70">
+        <h1 className="text-3xl font-extrabold 2xl:text-5xl">Game Over</h1>
+        <p className="mt-2 text-white/70 2xl:mt-3 2xl:text-xl">
           {tied ? "It's a tie!" : `${winner.name} wins!`}
         </p>
       </div>
-      <div className="flex w-full flex-col gap-3">
+      <div className="flex w-full flex-col gap-3 2xl:gap-4">
         {ranked.map((team) => (
           <div
             key={team.id}
-            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 2xl:px-6 2xl:py-4"
           >
-            <span className="font-semibold">{team.name}</span>
-            <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
+            <span className="font-semibold 2xl:text-xl">{team.name}</span>
+            <span className="text-xl font-extrabold text-amber-400 2xl:text-3xl">{team.score}</span>
           </div>
         ))}
       </div>
@@ -275,56 +300,57 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
       <div className="absolute inset-0 bg-black/25" />
 
       <div className="relative z-10 flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10">
+        <div className="mx-auto flex w-full max-w-[2200px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10 2xl:gap-6 2xl:px-16 2xl:pt-10">
           <Link
             href="/games/survey-showdown"
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md 2xl:gap-2 2xl:px-6 2xl:py-4 2xl:text-base"
           >
-            <ArrowRightIcon className="h-4 w-4 rotate-180" />
+            <ArrowRightIcon className="h-4 w-4 rotate-180 2xl:h-5 2xl:w-5" />
             Back to Lobby
           </Link>
 
-          <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md 2xl:gap-8 2xl:px-6 2xl:py-4">
             {state?.name && (
               <div className="flex items-center gap-2">
-                <p className="max-w-48 truncate text-sm font-semibold text-white">
+                <p className="max-w-48 truncate text-sm font-semibold text-white 2xl:max-w-64 2xl:text-base">
                   {state.name}
                 </p>
               </div>
             )}
             {state?.visibility === "private" && (
-              <LockIcon className="h-4 w-4 text-white/60" />
+              <LockIcon className="h-4 w-4 text-white/60 2xl:h-5 2xl:w-5" />
             )}
             <div className="flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-primary" />
+              <UsersIcon className="h-5 w-5 text-primary 2xl:h-6 2xl:w-6" />
               <div>
-                <p className="text-sm font-semibold text-white">{gameInfo.players}</p>
-                <p className="text-xs text-white/60">Teams</p>
+                <p className="text-sm font-semibold text-white 2xl:text-base">{gameInfo.players}</p>
+                <p className="text-xs text-white/60 2xl:text-sm">Teams</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <ClockIcon className="h-5 w-5 text-primary" />
+              <ClockIcon className="h-5 w-5 text-primary 2xl:h-6 2xl:w-6" />
               <div>
-                <p className="text-sm font-semibold text-white">15–20 min</p>
-                <p className="text-xs text-white/60">Play time</p>
+                <p className="text-sm font-semibold text-white 2xl:text-base">15–20 min</p>
+                <p className="text-xs text-white/60 2xl:text-sm">Play time</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <TrophyIcon className="h-5 w-5 text-primary" />
+              <TrophyIcon className="h-5 w-5 text-primary 2xl:h-6 2xl:w-6" />
               <div>
-                <p className="text-sm font-semibold text-white">{gameInfo.type}</p>
-                <p className="text-xs text-white/60">Game type</p>
+                <p className="text-sm font-semibold text-white 2xl:text-base">{gameInfo.type}</p>
+                <p className="text-xs text-white/60 2xl:text-sm">Game type</p>
               </div>
             </div>
             {state && <RoomCodeChip code={state.code} />}
+            {state && <CopyRoomLinkButton code={state.code} />}
           </div>
         </div>
 
-        <div className="mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10">
+        <div className="mx-auto flex w-full max-w-[2200px] flex-1 items-start px-6 pb-16 sm:px-10 2xl:px-16 2xl:pb-20">
           {loading ? (
-            <p className="mx-auto text-white/70">Loading game…</p>
+            <p className="mx-auto text-white/70 2xl:text-lg">Loading game…</p>
           ) : !state ? (
-            <p className="mx-auto text-white/70">Couldn&apos;t find that room.</p>
+            <p className="mx-auto text-white/70 2xl:text-lg">Couldn&apos;t find that room.</p>
           ) : locked ? (
             <PasswordGate roomName={state.name} onSubmit={handleVerifyPassword} />
           ) : spectatorBlocked ? (
@@ -342,10 +368,10 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
             <GameOverScreen state={state} />
           ) : (
             <div
-              className={`grid w-full items-start gap-6 ${
+              className={`grid w-full items-start gap-6 2xl:gap-8 ${
                 state.enableChat
-                  ? "lg:grid-cols-[280px_1fr_220px_260px]"
-                  : "lg:grid-cols-[280px_1fr_220px]"
+                  ? "lg:grid-cols-[280px_1fr_220px_260px] 2xl:grid-cols-[340px_1fr_280px_320px]"
+                  : "lg:grid-cols-[280px_1fr_220px] 2xl:grid-cols-[340px_1fr_280px]"
               }`}
             >
               <TeamSidebar

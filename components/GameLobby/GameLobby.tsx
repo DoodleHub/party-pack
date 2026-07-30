@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -51,12 +52,21 @@ interface GameLobbyProps {
 }
 
 export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [visibility, setVisibility] = useState("all");
   const [players, setPlayers] = useState("all");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("recent");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [joinCode, setJoinCode] = useState("");
+
+  function handleJoinByCode(event: FormEvent) {
+    event.preventDefault();
+    const code = joinCode.trim().toUpperCase();
+    if (!code) return;
+    router.push(`/games/${game.slug}/room/${code}`);
+  }
 
   const filteredRooms = useMemo(() => {
     let result = rooms.filter((room) => {
@@ -124,13 +134,27 @@ export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
               <Badge variant="outline">{game.type}</Badge>
             </div>
             <p className="max-w-md text-lg text-muted">{game.description}</p>
-            <div>
+            <div className="flex flex-wrap items-center gap-3">
               <Link href={`/games/${game.slug}/room/new`}>
                 <Button variant="primary" size="lg">
                   <PlusIcon className="h-4 w-4" />
                   Create Room
                 </Button>
               </Link>
+              <form onSubmit={handleJoinByCode} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(event) => setJoinCode(event.target.value)}
+                  placeholder="Have a code?"
+                  maxLength={8}
+                  className="h-11 w-36 rounded-xl border border-ink/10 bg-card px-4 text-sm uppercase tracking-widest text-card-foreground placeholder:normal-case placeholder:tracking-normal placeholder:text-card-muted focus:outline-none"
+                />
+                <Button type="submit" variant="outline" size="lg" disabled={!joinCode.trim()}>
+                  Join
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Button>
+              </form>
             </div>
           </div>
         </section>
