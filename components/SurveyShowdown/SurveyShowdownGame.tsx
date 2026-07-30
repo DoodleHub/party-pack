@@ -21,6 +21,7 @@ import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
 import {
   advanceRound,
+  claimHost,
   expireTurn,
   fetchRoomState,
   getCurrentUser,
@@ -32,6 +33,7 @@ import {
   submitAnswer,
   subscribeToPresence,
   subscribeToRoom,
+  transferHost,
   verifyRoomPassword,
 } from "@/components/SurveyShowdown/data";
 import type { RoomState } from "@/components/SurveyShowdown/types";
@@ -133,6 +135,11 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
 
   const stateRef = useRef<RoomState | null>(null);
   const onlineIdsRef = useRef<Set<string>>(new Set());
+  const roomIdRef = useRef<string | null>(null);
+  const isPlayerRef = useRef(false);
+  const isHostRef = useRef(false);
+  const userIdRef = useRef<string | null>(null);
+  const statusRef = useRef<RoomState["status"] | undefined>(undefined);
 
   const refresh = useCallback(async () => {
     const next = await fetchRoomState(roomCode);
@@ -161,26 +168,51 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
 
   // Detects players closing their tab/browser (not just clicking "Leave Team").
   // While the room is still waiting to start, a departed player's seat is
-  // freed up automatically after a short grace period.
+  // freed up automatically after a short grace period. Once the game is
+  // in progress, seats stay put (a disconnected player might reconnect and
+  // still owe an answer), but if the departed player was the host, host
+  // duties are handed to another seated player after the same grace period.
   useEffect(() => {
     if (!state?.roomId || !userId) return;
+    let firstSync = true;
     return subscribeToPresence(
       state.roomId,
       userId,
       (ids) => {
         onlineIdsRef.current = ids;
         setOnlineUserIds(ids);
+
+        // If everyone (including the host) disconnected from an in-progress
+        // game, host_id is left pointing at nobody. The first seated player
+        // to reconnect claims it: this only fires once per subscription, and
+        // only when this client's own initial presence sync shows no one
+        // else already online.
+        if (firstSync) {
+          firstSync = false;
+          const current = stateRef.current;
+          const isSeated = !!current?.teams.some((t) =>
+            t.players.some((p) => p.userId === userId),
+          );
+          const othersOnline = [...ids].some((id) => id !== userId);
+          if (current?.status === "active" && isSeated && !othersOnline) {
+            claimHost(current.roomId).then(refresh);
+          }
+        }
       },
       (leftUserId) => {
         setTimeout(() => {
           if (onlineIdsRef.current.has(leftUserId)) return;
           const current = stateRef.current;
-          if (!current || current.status !== "waiting") return;
-          const player = current.teams
-            .flatMap((t) => t.players)
-            .find((p) => p.userId === leftUserId);
-          if (!player) return;
-          removePlayer(current.roomId, player.id).then(refresh);
+          if (!current) return;
+          if (current.status === "waiting") {
+            const player = current.teams
+              .flatMap((t) => t.players)
+              .find((p) => p.userId === leftUserId);
+            if (!player) return;
+            removePlayer(current.roomId, player.id).then(refresh);
+          } else if (current.status === "active" && current.hostId === leftUserId) {
+            transferHost(current.roomId, leftUserId).then(refresh);
+          }
         }, DISCONNECT_GRACE_MS);
       },
     );
@@ -228,6 +260,32 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
     : null;
   const isPlayer = myPlayerId !== null;
   const isHost = !!(state && userId && state.hostId === userId);
+
+  useEffect(() => {
+    roomIdRef.current = state?.roomId ?? null;
+    isPlayerRef.current = isPlayer;
+    isHostRef.current = isHost;
+    userIdRef.current = userId;
+    statusRef.current = state?.status;
+  });
+
+  // Presence "leave" detection above only fires for clients still watching the
+  // room, so a player who is the last one to navigate away is never observed
+  // disconnecting. Proactively handle this client's own departure (e.g.
+  // clicking "Back to Lobby") instead of relying on someone else witnessing
+  // it: while waiting, free up the seat (which also hands off/deletes the
+  // room if this was the host); once the game is in progress, seats stay put
+  // but host duties still need to move to someone else if this was the host.
+  useEffect(() => {
+    return () => {
+      if (!roomIdRef.current) return;
+      if (statusRef.current === "waiting" && isPlayerRef.current) {
+        leaveTeam(roomIdRef.current);
+      } else if (statusRef.current === "active" && isHostRef.current && userIdRef.current) {
+        transferHost(roomIdRef.current, userIdRef.current);
+      }
+    };
+  }, []);
   const isMyTurn = !!state && state.activePlayerId !== null && state.activePlayerId === myPlayerId;
   const activePlayerName = state
     ? (state.teams.flatMap((t) => t.players).find((p) => p.id === state.activePlayerId)?.name ??
@@ -373,6 +431,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
                 activeTeamSlot={state.activeTeamSlot}
                 activePlayerId={state.activePlayerId}
                 onlineUserIds={onlineUserIds}
+                hostId={state.hostId}
               />
 
               <GameStage

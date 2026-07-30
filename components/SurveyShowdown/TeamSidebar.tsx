@@ -1,3 +1,4 @@
+import { CrownIcon } from "@/components/ui/Icon";
 import type { Team } from "@/components/SurveyShowdown/types";
 
 const AVATAR_COLORS = [
@@ -31,9 +32,10 @@ interface TeamPanelProps {
   active: boolean;
   activePlayerId: string | null;
   onlineUserIds: Set<string>;
+  hostId: string | null;
 }
 
-function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelProps) {
+function TeamPanel({ team, active, activePlayerId, onlineUserIds, hostId }: TeamPanelProps) {
   const style = TEAM_STYLES[team.slot];
 
   return (
@@ -84,8 +86,13 @@ function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelPro
                   }`}
                 />
               </span>
-              <span className={`text-sm ${isUp ? "font-semibold text-white" : "text-white/90"}`}>
+              <span
+                className={`flex items-center gap-1.5 text-sm ${isUp ? "font-semibold text-white" : "text-white/90"}`}
+              >
                 {player.name}
+                {player.userId === hostId && (
+                  <CrownIcon className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                )}
               </span>
               {isUp && <span className="text-xs font-semibold text-amber-400">Up now</span>}
             </li>
@@ -101,6 +108,7 @@ interface TeamSidebarProps {
   activeTeamSlot: 1 | 2;
   activePlayerId: string | null;
   onlineUserIds: Set<string>;
+  hostId: string | null;
 }
 
 export function TeamSidebar({
@@ -108,6 +116,7 @@ export function TeamSidebar({
   activeTeamSlot,
   activePlayerId,
   onlineUserIds,
+  hostId,
 }: TeamSidebarProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -118,6 +127,7 @@ export function TeamSidebar({
           active={team.slot === activeTeamSlot}
           activePlayerId={activePlayerId}
           onlineUserIds={onlineUserIds}
+          hostId={hostId}
         />
       ))}
     </div>

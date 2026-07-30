@@ -401,6 +401,10 @@ export type Database = {
         Args: { p_pack_id: string; p_room_id: string }
         Returns: undefined
       }
+      survey_showdown_claim_host: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
       survey_showdown_create_room: {
         Args: {
           p_allow_spectators: boolean
@@ -429,6 +433,10 @@ export type Database = {
         Returns: undefined
       }
       survey_showdown_normalize: { Args: { p_text: string }; Returns: string }
+      survey_showdown_reassign_or_delete_room: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
       survey_showdown_register_miss: {
         Args: { p_room_id: string }
         Returns: undefined
@@ -466,7 +474,7 @@ export type Database = {
         Returns: undefined
       }
       survey_showdown_set_display_mode: {
-        Args: { p_room_id: string; p_mode: string }
+        Args: { p_mode: string; p_room_id: string }
         Returns: undefined
       }
       survey_showdown_start_game: {
@@ -476,6 +484,10 @@ export type Database = {
       survey_showdown_submit_answer: {
         Args: { p_room_id: string; p_text: string }
         Returns: Json
+      }
+      survey_showdown_transfer_host: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
       }
       survey_showdown_verify_password: {
         Args: { p_code: string; p_password: string }

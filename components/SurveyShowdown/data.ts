@@ -95,6 +95,11 @@ export function subscribeToLobbyRooms(onChange: () => void) {
       { event: "*", schema: "public", table: "survey_showdown_rooms" },
       onChange,
     )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "survey_showdown_players" },
+      onChange,
+    )
     .subscribe();
 
   return () => {
@@ -212,6 +217,24 @@ export async function removePlayer(roomId: string, playerId: string): Promise<vo
     p_room_id: roomId,
     p_player_id: playerId,
   });
+}
+
+// Hands host duties to another seated player. Unlike leaveTeam/removePlayer,
+// this doesn't touch the departing user's seat — it only matters for
+// in-progress games, where a disconnected/departed host's seat stays put but
+// host-only controls (reveal, advance, start) need someone else to hold them.
+export async function transferHost(roomId: string, departingUserId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_transfer_host", {
+    p_room_id: roomId,
+    p_departing_user_id: departingUserId,
+  });
+}
+
+// Claims host for the calling (seated) player of an in-progress game. Used
+// when everyone — including the host — has disconnected, leaving host_id
+// pointing at nobody: the first player to reconnect becomes host.
+export async function claimHost(roomId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_claim_host", { p_room_id: roomId });
 }
 
 // Tracks who currently has this room open (detects tab/browser close, not just
