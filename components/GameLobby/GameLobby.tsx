@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -45,6 +45,14 @@ const SORT_OPTIONS = [
   { value: "alphabetical", label: "Alphabetical" },
 ];
 
+const DEFAULT_FILTERS = {
+  q: "",
+  visibility: "all",
+  players: "all",
+  status: "all",
+  sort: "recent",
+} as const;
+
 interface GameLobbyProps {
   game: GameLobbyInfo;
   rooms: LobbyRoom[];
@@ -53,12 +61,6 @@ interface GameLobbyProps {
 
 export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [visibility, setVisibility] = useState("all");
-  const [players, setPlayers] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [sort, setSort] = useState("recent");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [joinCode, setJoinCode] = useState("");
 
   function handleJoinByCode(event: FormEvent) {
@@ -67,28 +69,6 @@ export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
     if (!code) return;
     router.push(`/games/${game.slug}/room/${code}`);
   }
-
-  const filteredRooms = useMemo(() => {
-    let result = rooms.filter((room) => {
-      if (search && !room.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (visibility !== "all" && room.visibility !== visibility) return false;
-      if (status !== "all" && room.status !== status) return false;
-      if (players === "small" && room.maxPlayers > 4) return false;
-      if (players === "large" && room.maxPlayers <= 4) return false;
-      return true;
-    });
-
-    result = [...result].sort((a, b) => {
-      if (sort === "players") return b.playerNames.length - a.playerNames.length;
-      if (sort === "alphabetical") return a.name.localeCompare(b.name);
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
-    return result;
-  }, [rooms, search, visibility, status, players, sort]);
-
-  const visibleRooms = filteredRooms.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredRooms.length;
 
   return (
     <div className="flex flex-1 flex-col bg-surface font-sans">
@@ -159,90 +139,149 @@ export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
           </div>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              <div className="flex h-11 w-full items-center gap-2 rounded-xl border border-ink/10 bg-card px-4 sm:w-52">
-                <SearchIcon className="h-4 w-4 shrink-0 text-card-muted" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(event) => {
-                    setSearch(event.target.value);
-                    setVisibleCount(PAGE_SIZE);
-                  }}
-                  placeholder="Search rooms..."
-                  className="w-full bg-transparent text-sm text-card-foreground placeholder:text-card-muted focus:outline-none"
-                />
-              </div>
-              <Select
-                label="Visibility"
-                value={visibility}
-                options={VISIBILITY_OPTIONS}
-                onChange={(value) => {
-                  setVisibility(value);
-                  setVisibleCount(PAGE_SIZE);
-                }}
-              />
-              <Select
-                label="Players"
-                value={players}
-                options={PLAYERS_OPTIONS}
-                onChange={(value) => {
-                  setPlayers(value);
-                  setVisibleCount(PAGE_SIZE);
-                }}
-              />
-              <Select
-                label="Status"
-                value={status}
-                options={STATUS_OPTIONS}
-                onChange={(value) => {
-                  setStatus(value);
-                  setVisibleCount(PAGE_SIZE);
-                }}
-              />
-              <Select label="Sort" value={sort} options={SORT_OPTIONS} onChange={setSort} />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold text-ink">Active Rooms</h2>
-              <Badge variant="primary">{filteredRooms.length}</Badge>
-            </div>
-
-            {visibleRooms.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {visibleRooms.map((room) => (
-                  <RoomRow
-                    key={room.code}
-                    gameSlug={game.slug}
-                    room={room}
-                    isYourRoom={room.code === yourRoomCode}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="py-16 text-center text-muted">
-                No rooms match your filters. Try adjusting your search.
-              </p>
-            )}
-
-            {hasMore && (
-              <Button
-                variant="outline"
-                className="mx-auto"
-                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-              >
-                Load More Rooms
-                <ChevronDownIcon className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-
-          <AboutGameSidebar game={game} />
-        </section>
+        <Suspense fallback={<RoomBrowserFallback />}>
+          <RoomBrowser game={game} rooms={rooms} yourRoomCode={yourRoomCode} />
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+function RoomBrowserFallback() {
+  return (
+    <section className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
+      <div className="flex flex-col gap-6">
+        <div className="h-11 w-full animate-pulse rounded-xl bg-surface-alt sm:w-52" />
+        <p className="py-16 text-center text-muted">Loading rooms…</p>
+      </div>
+    </section>
+  );
+}
+
+function RoomBrowser({ game, rooms, yourRoomCode }: GameLobbyProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Filters live in the URL (rather than local state) so they survive
+  // navigating into a room and back via the browser's back button.
+  const search = searchParams.get("q") ?? DEFAULT_FILTERS.q;
+  const visibility = searchParams.get("visibility") ?? DEFAULT_FILTERS.visibility;
+  const players = searchParams.get("players") ?? DEFAULT_FILTERS.players;
+  const status = searchParams.get("status") ?? DEFAULT_FILTERS.status;
+  const sort = searchParams.get("sort") ?? DEFAULT_FILTERS.sort;
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  function setFilter(key: keyof typeof DEFAULT_FILTERS, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === DEFAULT_FILTERS[key]) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
+    setVisibleCount(PAGE_SIZE);
+  }
+
+  const filteredRooms = useMemo(() => {
+    let result = rooms.filter((room) => {
+      if (search && !room.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (visibility !== "all" && room.visibility !== visibility) return false;
+      if (status !== "all" && room.status !== status) return false;
+      if (players === "small" && room.maxPlayers > 4) return false;
+      if (players === "large" && room.maxPlayers <= 4) return false;
+      return true;
+    });
+
+    result = [...result].sort((a, b) => {
+      if (sort === "players") return b.playerNames.length - a.playerNames.length;
+      if (sort === "alphabetical") return a.name.localeCompare(b.name);
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return result;
+  }, [rooms, search, visibility, status, players, sort]);
+
+  const visibleRooms = filteredRooms.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredRooms.length;
+
+  return (
+    <section className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex h-11 w-full items-center gap-2 rounded-xl border border-ink/10 bg-card px-4 sm:w-52">
+            <SearchIcon className="h-4 w-4 shrink-0 text-card-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setFilter("q", event.target.value)}
+              placeholder="Search rooms..."
+              className="w-full bg-transparent text-sm text-card-foreground placeholder:text-card-muted focus:outline-none"
+            />
+          </div>
+          <Select
+            label="Visibility"
+            value={visibility}
+            options={VISIBILITY_OPTIONS}
+            onChange={(value) => setFilter("visibility", value)}
+          />
+          <Select
+            label="Players"
+            value={players}
+            options={PLAYERS_OPTIONS}
+            onChange={(value) => setFilter("players", value)}
+          />
+          <Select
+            label="Status"
+            value={status}
+            options={STATUS_OPTIONS}
+            onChange={(value) => setFilter("status", value)}
+          />
+          <Select
+            label="Sort"
+            value={sort}
+            options={SORT_OPTIONS}
+            onChange={(value) => setFilter("sort", value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <UsersIcon className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-ink">Active Rooms</h2>
+          <Badge variant="primary">{filteredRooms.length}</Badge>
+        </div>
+
+        {visibleRooms.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {visibleRooms.map((room) => (
+              <RoomRow
+                key={room.code}
+                gameSlug={game.slug}
+                room={room}
+                isYourRoom={room.code === yourRoomCode}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="py-16 text-center text-muted">
+            No rooms match your filters. Try adjusting your search.
+          </p>
+        )}
+
+        {hasMore && (
+          <Button
+            variant="outline"
+            className="mx-auto"
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+          >
+            Load More Rooms
+            <ChevronDownIcon className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      <AboutGameSidebar game={game} />
+    </section>
   );
 }

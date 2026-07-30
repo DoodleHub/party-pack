@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { GameLobby } from "@/components/GameLobby/GameLobby";
+import { LobbyRealtimeRefresh } from "@/components/SurveyShowdown/LobbyRealtimeRefresh";
 import { surveyShowdownLobbyInfo } from "@/components/SurveyShowdown/lobbyData";
 import type { LobbyRoom } from "@/components/GameLobby/types";
 
@@ -73,6 +74,9 @@ export default async function SurveyShowdownLobbyPage() {
     : undefined;
 
   return (
-    <GameLobby game={surveyShowdownLobbyInfo} rooms={lobbyRooms} yourRoomCode={yourRoomCode} />
+    <>
+      <LobbyRealtimeRefresh />
+      <GameLobby game={surveyShowdownLobbyInfo} rooms={lobbyRooms} yourRoomCode={yourRoomCode} />
+    </>
   );
 }

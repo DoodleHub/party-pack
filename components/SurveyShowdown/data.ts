@@ -87,6 +87,21 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
   };
 }
 
+export function subscribeToLobbyRooms(onChange: () => void) {
+  const channel = supabase
+    .channel("survey-showdown-lobby")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "survey_showdown_rooms" },
+      onChange,
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
 export function subscribeToRoom(roomId: string, onChange: () => void) {
   const channel = supabase
     .channel(`room-${roomId}`)
