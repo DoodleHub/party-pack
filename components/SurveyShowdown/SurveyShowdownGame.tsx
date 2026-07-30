@@ -19,7 +19,6 @@ import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
 import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
 import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
-import { useMatchHeight } from "@/components/SurveyShowdown/useMatchHeight";
 import {
   advanceRound,
   expireTurn,
@@ -134,7 +133,6 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
 
   const stateRef = useRef<RoomState | null>(null);
   const onlineIdsRef = useRef<Set<string>>(new Set());
-  const [gameColumnsRef, gameColumnsHeight] = useMatchHeight<HTMLDivElement>();
 
   const refresh = useCallback(async () => {
     const next = await fetchRoomState(roomCode);
@@ -369,44 +367,38 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
           ) : state.status === "ended" ? (
             <GameOverScreen state={state} />
           ) : (
-            <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start">
-              <div
-                ref={gameColumnsRef}
-                className="grid w-full min-w-0 flex-1 items-start gap-6 lg:grid-cols-[280px_1fr_220px]"
-              >
-                <TeamSidebar
-                  teams={state.teams}
-                  activeTeamSlot={state.activeTeamSlot}
-                  activePlayerId={state.activePlayerId}
-                  onlineUserIds={onlineUserIds}
-                />
+            <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[280px_1fr_300px]">
+              <TeamSidebar
+                teams={state.teams}
+                activeTeamSlot={state.activeTeamSlot}
+                activePlayerId={state.activePlayerId}
+                onlineUserIds={onlineUserIds}
+              />
 
-                <GameStage
-                  prompt={state.currentPrompt}
-                  answers={state.currentAnswers}
-                  activeTeamSlot={state.activeTeamSlot}
-                  activePlayerName={activePlayerName}
-                  isMyTurn={isMyTurn}
-                  turnEndsAt={state.turnEndsAt}
-                  onSubmitAnswer={handleSubmitAnswer}
-                  stuck={stuck}
-                  allRevealed={allRevealed}
-                  isHost={isHost}
-                  onRevealAll={handleRevealAll}
-                  onNextRound={handleNextRound}
-                />
+              <GameStage
+                prompt={state.currentPrompt}
+                answers={state.currentAnswers}
+                activeTeamSlot={state.activeTeamSlot}
+                activePlayerName={activePlayerName}
+                isMyTurn={isMyTurn}
+                turnEndsAt={state.turnEndsAt}
+                onSubmitAnswer={handleSubmitAnswer}
+                stuck={stuck}
+                allRevealed={allRevealed}
+                isHost={isHost}
+                onRevealAll={handleRevealAll}
+                onNextRound={handleNextRound}
+              />
 
+              <div className="flex flex-col gap-6">
                 <RoundSidebar roundNumber={state.roundNumber} totalRounds={state.totalRounds} />
-              </div>
 
-              {state.enableChat && (
-                <div
-                  className="h-112 w-full shrink-0 overflow-hidden lg:w-65 lg:max-w-65 lg:min-h-112"
-                  style={gameColumnsHeight != null ? { height: gameColumnsHeight } : undefined}
-                >
-                  <ChatPanel roomId={state.roomId} senderId={userId ?? "spectator"} />
-                </div>
-              )}
+                {state.enableChat && (
+                  <div className="h-112 w-full shrink-0 overflow-hidden">
+                    <ChatPanel roomId={state.roomId} senderId={userId ?? "spectator"} />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { CheckIcon, CloseIcon } from "@/components/ui/Icon";
 import type { Answer } from "@/components/SurveyShowdown/types";
 import type { SubmitAnswerResult } from "@/components/SurveyShowdown/data";
 
@@ -43,6 +44,61 @@ function AnswerRow({ rank, answer }: { rank: number; answer: Answer | undefined 
   );
 }
 
+interface AnswerFeedback {
+  correct: boolean;
+  points?: number;
+}
+
+function AnswerFeedbackToast({
+  feedback,
+  toastKey,
+}: {
+  feedback: AnswerFeedback;
+  toastKey: number;
+}) {
+  const correct = feedback.correct;
+
+  return (
+    <div
+      key={toastKey}
+      className="pointer-events-none absolute bottom-[calc(100%+0.75rem)] left-1/2 z-20 w-max opacity-0 animate-[answer-toast_2.1s_cubic-bezier(0.16,1,0.3,1)_forwards]"
+    >
+      <div
+        className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border px-5 py-3 shadow-2xl backdrop-blur-md ${
+          correct
+            ? "border-emerald-400/50 bg-emerald-950/80 shadow-emerald-500/20"
+            : "border-rose-400/50 bg-rose-950/80 shadow-rose-500/20"
+        }`}
+      >
+        <span
+          className={`absolute inset-0 -z-10 rounded-2xl animate-[answer-toast-ring_1.1s_ease-out] ${
+            correct ? "bg-emerald-400/30" : "bg-rose-400/30"
+          }`}
+        />
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            correct ? "bg-emerald-400 text-emerald-950" : "bg-rose-400 text-rose-950"
+          }`}
+        >
+          {correct ? <CheckIcon className="h-5 w-5" /> : <CloseIcon className="h-5 w-5" />}
+        </span>
+        <div className="text-left leading-tight">
+          <p
+            className={`text-base font-extrabold whitespace-nowrap ${
+              correct ? "text-emerald-300" : "text-rose-300"
+            }`}
+          >
+            {correct ? `Correct! +${feedback.points ?? 0} pts` : "Not quite!"}
+          </p>
+          {!correct && (
+            <p className="text-xs whitespace-nowrap text-white/60">Turn passes to the other team</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function useCountdown(turnEndsAt: string | null) {
   const [remainingMs, setRemainingMs] = useState(0);
 
@@ -78,7 +134,8 @@ export function GameStage({
 }: GameStageProps) {
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ correct: boolean; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+  const [feedbackKey, setFeedbackKey] = useState(0);
   const [resolving, setResolving] = useState(false);
 
   const remainingMs = useCountdown(turnEndsAt);
@@ -99,12 +156,9 @@ export function GameStage({
     setSubmitting(false);
 
     if ("error" in result) return;
-    setFeedback(
-      result.correct
-        ? { correct: true, text: `Correct! +${result.points ?? 0} pts` }
-        : { correct: false, text: "Not quite — turn passes to the other team." },
-    );
-    setTimeout(() => setFeedback(null), 2000);
+    setFeedback(result.correct ? { correct: true, points: result.points ?? 0 } : { correct: false });
+    setFeedbackKey((k) => k + 1);
+    setTimeout(() => setFeedback(null), 2100);
   }
 
   async function handleRevealAll() {
@@ -180,12 +234,8 @@ export function GameStage({
       </div>
 
       {!stuck && (
-        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-3">
-          {feedback && (
-            <p className={`text-sm font-semibold ${feedback.correct ? "text-emerald-400" : "text-red-400"}`}>
-              {feedback.text}
-            </p>
-          )}
+        <div className="relative mt-6 flex w-full max-w-md flex-col items-center gap-3">
+          {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
 
           {isMyTurn ? (
             <div className="flex w-full items-center gap-2">
