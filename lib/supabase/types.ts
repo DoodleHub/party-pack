@@ -32,6 +32,32 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_showdown_answer_synonyms: {
+        Row: {
+          answer_id: string
+          id: string
+          phrase: string
+        }
+        Insert: {
+          answer_id: string
+          id?: string
+          phrase: string
+        }
+        Update: {
+          answer_id?: string
+          id?: string
+          phrase?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_showdown_answer_synonyms_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "survey_showdown_answers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_showdown_answers: {
         Row: {
           created_at: string
@@ -67,6 +93,41 @@ export type Database = {
           },
         ]
       }
+      survey_showdown_messages: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          room_id: string
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          room_id: string
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          room_id?: string
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_showdown_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "survey_showdown_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_showdown_packs: {
         Row: {
           created_at: string
@@ -94,18 +155,21 @@ export type Database = {
           name: string
           sort_order: number
           team_id: string
+          user_id: string | null
         }
         Insert: {
           id?: string
           name: string
           sort_order?: number
           team_id: string
+          user_id?: string | null
         }
         Update: {
           id?: string
           name?: string
           sort_order?: number
           team_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -196,42 +260,76 @@ export type Database = {
       }
       survey_showdown_rooms: {
         Row: {
+          active_player_id: string | null
           active_team_slot: number
+          allow_spectators: boolean
           code: string
           created_at: string
           display_mode: string
+          enable_chat: boolean
+          host_id: string | null
           id: string
+          max_players: number
+          name: string
           pack_id: string
+          password_hash: string | null
           round_number: number
           status: string
           total_rounds: number
+          turn_ends_at: string | null
           updated_at: string
+          visibility: string
         }
         Insert: {
+          active_player_id?: string | null
           active_team_slot?: number
+          allow_spectators?: boolean
           code: string
           created_at?: string
           display_mode?: string
+          enable_chat?: boolean
+          host_id?: string | null
           id?: string
+          max_players?: number
+          name?: string
           pack_id: string
+          password_hash?: string | null
           round_number?: number
           status?: string
           total_rounds?: number
+          turn_ends_at?: string | null
           updated_at?: string
+          visibility?: string
         }
         Update: {
+          active_player_id?: string | null
           active_team_slot?: number
+          allow_spectators?: boolean
           code?: string
           created_at?: string
           display_mode?: string
+          enable_chat?: boolean
+          host_id?: string | null
           id?: string
+          max_players?: number
+          name?: string
           pack_id?: string
+          password_hash?: string | null
           round_number?: number
           status?: string
           total_rounds?: number
+          turn_ends_at?: string | null
           updated_at?: string
+          visibility?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "survey_showdown_rooms_active_player_id_fkey"
+            columns: ["active_player_id"]
+            isOneToOne: false
+            referencedRelation: "survey_showdown_players"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "survey_showdown_rooms_pack_id_fkey"
             columns: ["pack_id"]
@@ -248,6 +346,7 @@ export type Database = {
           room_id: string
           score: number
           slot: number
+          turn_cursor: number
         }
         Insert: {
           id?: string
@@ -255,6 +354,7 @@ export type Database = {
           room_id: string
           score?: number
           slot: number
+          turn_cursor?: number
         }
         Update: {
           id?: string
@@ -262,6 +362,7 @@ export type Database = {
           room_id?: string
           score?: number
           slot?: number
+          turn_cursor?: number
         }
         Relationships: [
           {
@@ -282,14 +383,46 @@ export type Database = {
         Args: { p_room_id: string }
         Returns: undefined
       }
+      survey_showdown_advance_turn: {
+        Args: { p_correct: boolean; p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_begin_round: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
       survey_showdown_change_pack: {
         Args: { p_pack_id: string; p_room_id: string }
         Returns: undefined
+      }
+      survey_showdown_create_room: {
+        Args: {
+          p_allow_spectators: boolean
+          p_enable_chat: boolean
+          p_max_players: number
+          p_name: string
+          p_password: string
+          p_visibility: string
+        }
+        Returns: string
       }
       survey_showdown_end_game: {
         Args: { p_room_id: string }
         Returns: undefined
       }
+      survey_showdown_expire_turn: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_join_team: {
+        Args: { p_room_id: string; p_slot: number }
+        Returns: undefined
+      }
+      survey_showdown_leave_team: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_normalize: { Args: { p_text: string }; Returns: string }
       survey_showdown_reset_scores: {
         Args: { p_room_id: string }
         Returns: undefined
@@ -306,13 +439,29 @@ export type Database = {
         Args: { p_answer_id: string; p_room_id: string }
         Returns: undefined
       }
+      survey_showdown_send_chat_message: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: undefined
+      }
       survey_showdown_set_active_team: {
         Args: { p_room_id: string; p_slot: number }
         Returns: undefined
       }
       survey_showdown_set_display_mode: {
-        Args: { p_mode: string; p_room_id: string }
+        Args: { p_room_id: string; p_mode: string }
         Returns: undefined
+      }
+      survey_showdown_start_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_submit_answer: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: Json
+      }
+      survey_showdown_verify_password: {
+        Args: { p_code: string; p_password: string }
+        Returns: boolean
       }
     }
     Enums: {

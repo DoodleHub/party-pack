@@ -4,17 +4,31 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import surveyShowdownStage from "@/public/games/survey-showdown-stage.png";
-import { ArrowRightIcon, ClockIcon, CopyIcon, TrophyIcon, UsersIcon } from "@/components/ui/Icon";
+import {
+  ArrowRightIcon,
+  ClockIcon,
+  CopyIcon,
+  LockIcon,
+  TrophyIcon,
+  UsersIcon,
+} from "@/components/ui/Icon";
 import { GameStage } from "@/components/SurveyShowdown/GameStage";
 import { TeamSidebar } from "@/components/SurveyShowdown/TeamSidebar";
 import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
+import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
+import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
+import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
 import {
   advanceRound,
+  expireTurn,
   fetchRoomState,
-  revealNextAnswer,
-  revealSpecificAnswer,
-  setActiveTeam,
+  getCurrentUser,
+  joinTeam,
+  leaveTeam,
+  startGame,
+  submitAnswer,
   subscribeToRoom,
+  verifyRoomPassword,
 } from "@/components/SurveyShowdown/data";
 import type { RoomState } from "@/components/SurveyShowdown/types";
 import { games } from "@/lib/games";
@@ -45,6 +59,35 @@ function RoomCodeChip({ code }: { code: string }) {
   );
 }
 
+function GameOverScreen({ state }: { state: RoomState }) {
+  const ranked = [...state.teams].sort((a, b) => b.score - a.score);
+  const winner = ranked[0];
+  const tied = ranked.length > 1 && ranked[0].score === ranked[1].score;
+
+  return (
+    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md">
+      <TrophyIcon className="h-10 w-10 text-amber-400" />
+      <div>
+        <h1 className="text-3xl font-extrabold">Game Over</h1>
+        <p className="mt-2 text-white/70">
+          {tied ? "It's a tie!" : `${winner.name} wins!`}
+        </p>
+      </div>
+      <div className="flex w-full flex-col gap-3">
+        {ranked.map((team) => (
+          <div
+            key={team.id}
+            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+          >
+            <span className="font-semibold">{team.name}</span>
+            <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface SurveyShowdownGameProps {
   roomCode: string;
 }
@@ -52,8 +95,8 @@ interface SurveyShowdownGameProps {
 export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   const [state, setState] = useState<RoomState | null>(null);
   const [loading, setLoading] = useState(true);
-  const [revealing, setRevealing] = useState(false);
-  const [advancing, setAdvancing] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [unlocked, setUnlocked] = useState(false);
 
   const refresh = useCallback(async () => {
     const next = await fetchRoomState(roomCode);
@@ -64,6 +107,10 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch on mount
     refresh();
+    getCurrentUser().then((user) => {
+      if (!user) return;
+      setUserId(user.id);
+    });
   }, [refresh]);
 
   useEffect(() => {
@@ -74,37 +121,83 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
 
   const allRevealed =
     !!state && state.currentAnswers.length > 0 && state.currentAnswers.every((a) => a.revealed);
-  const canRevealNext = !allRevealed;
-  const canAdvance = !!state && state.roundNumber < state.totalRounds;
 
-  async function handleRevealNext() {
-    if (!state) return;
-    setRevealing(true);
-    await revealNextAnswer(state.roomId);
-    await refresh();
-    setRevealing(false);
+  // Auto-advance to the next round shortly after the last answer is revealed.
+  useEffect(() => {
+    if (!state || state.status !== "active" || !allRevealed) return;
+    const timeout = setTimeout(() => {
+      advanceRound(state.roomId).then(refresh);
+    }, 2500);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allRevealed, state?.roomId, state?.status, state?.roundNumber]);
+
+  // Force a turn to expire exactly when its timer runs out, so the game
+  // keeps moving even if the active player is idle or has disconnected.
+  useEffect(() => {
+    if (!state || state.status !== "active" || !state.turnEndsAt) return;
+    const msLeft = new Date(state.turnEndsAt).getTime() - Date.now();
+    const timeout = setTimeout(
+      () => {
+        expireTurn(state.roomId).then(refresh);
+      },
+      Math.max(0, msLeft) + 300,
+    );
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.turnEndsAt, state?.status, state?.roomId]);
+
+  const needsPassword = !!state && state.visibility === "private" && state.hasPassword;
+  const locked = needsPassword && !unlocked;
+
+  const myPlayerId = state
+    ? (state.teams.flatMap((t) => t.players).find((p) => p.userId === userId)?.id ?? null)
+    : null;
+  const isPlayer = myPlayerId !== null;
+  const isMyTurn = !!state && state.activePlayerId !== null && state.activePlayerId === myPlayerId;
+  const activePlayerName = state
+    ? (state.teams.flatMap((t) => t.players).find((p) => p.id === state.activePlayerId)?.name ??
+      null)
+    : null;
+
+  const spectatorBlocked = !!(
+    state &&
+    state.status !== "waiting" &&
+    !isPlayer &&
+    !state.allowSpectators
+  );
+
+  async function handleVerifyPassword(password: string) {
+    const ok = await verifyRoomPassword(roomCode, password);
+    if (ok) setUnlocked(true);
+    return ok;
   }
 
-  async function handleRevealAnswer(answerId: string) {
-    if (!state) return;
-    setRevealing(true);
-    await revealSpecificAnswer(state.roomId, answerId);
+  async function handleSubmitAnswer(text: string) {
+    if (!state) return { error: "Room not loaded yet." };
+    const result = await submitAnswer(state.roomId, text);
     await refresh();
-    setRevealing(false);
+    return result;
   }
 
-  async function handleNextQuestion() {
-    if (!state) return;
-    setAdvancing(true);
-    await advanceRound(state.roomId);
+  async function handleJoinTeam(slot: 1 | 2) {
+    if (!state) return { error: "Room not loaded yet." };
+    const result = await joinTeam(state.roomId, slot);
     await refresh();
-    setAdvancing(false);
+    return result;
   }
 
-  async function handleSetActiveTeam(slot: 1 | 2) {
+  async function handleLeaveTeam() {
     if (!state) return;
-    await setActiveTeam(state.roomId, slot);
+    await leaveTeam(state.roomId);
     await refresh();
+  }
+
+  async function handleStartGame() {
+    if (!state) return { error: "Room not loaded yet." };
+    const result = await startGame(state.roomId);
+    await refresh();
+    return result;
   }
 
   return (
@@ -130,6 +223,16 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
           </Link>
 
           <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md">
+            {state?.name && (
+              <div className="flex items-center gap-2">
+                <p className="max-w-48 truncate text-sm font-semibold text-white">
+                  {state.name}
+                </p>
+              </div>
+            )}
+            {state?.visibility === "private" && (
+              <LockIcon className="h-4 w-4 text-white/60" />
+            )}
             <div className="flex items-center gap-2">
               <UsersIcon className="h-5 w-5 text-primary" />
               <div>
@@ -160,27 +263,51 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
             <p className="mx-auto text-white/70">Loading game…</p>
           ) : !state ? (
             <p className="mx-auto text-white/70">Couldn&apos;t find that room.</p>
+          ) : locked ? (
+            <PasswordGate roomName={state.name} onSubmit={handleVerifyPassword} />
+          ) : spectatorBlocked ? (
+            <p className="mx-auto text-white/70">This room doesn&apos;t allow spectators.</p>
+          ) : state.status === "waiting" ? (
+            <WaitingRoom
+              room={state}
+              currentUserId={userId ?? ""}
+              onJoinTeam={handleJoinTeam}
+              onLeaveTeam={handleLeaveTeam}
+              onStartGame={handleStartGame}
+            />
+          ) : state.status === "ended" ? (
+            <GameOverScreen state={state} />
           ) : (
-            <div className="grid w-full items-start gap-6 lg:grid-cols-[280px_1fr_220px]">
+            <div
+              className={`grid w-full items-start gap-6 ${
+                state.enableChat
+                  ? "lg:grid-cols-[280px_1fr_220px_260px]"
+                  : "lg:grid-cols-[280px_1fr_220px]"
+              }`}
+            >
               <TeamSidebar
                 teams={state.teams}
                 activeTeamSlot={state.activeTeamSlot}
-                onSetActiveTeam={handleSetActiveTeam}
+                activePlayerId={state.activePlayerId}
               />
 
               <GameStage
                 prompt={state.currentPrompt}
                 answers={state.currentAnswers}
-                onRevealNext={handleRevealNext}
-                onRevealAnswer={handleRevealAnswer}
-                onNextQuestion={handleNextQuestion}
-                canRevealNext={canRevealNext}
-                canAdvance={canAdvance}
-                revealing={revealing}
-                advancing={advancing}
+                activeTeamSlot={state.activeTeamSlot}
+                activePlayerName={activePlayerName}
+                isMyTurn={isMyTurn}
+                turnEndsAt={state.turnEndsAt}
+                onSubmitAnswer={handleSubmitAnswer}
               />
 
               <RoundSidebar roundNumber={state.roundNumber} totalRounds={state.totalRounds} />
+
+              {state.enableChat && (
+                <div className="h-112 lg:h-full lg:min-h-112">
+                  <ChatPanel roomId={state.roomId} senderId={userId ?? "spectator"} />
+                </div>
+              )}
             </div>
           )}
         </div>

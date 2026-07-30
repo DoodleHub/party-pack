@@ -1,12 +1,19 @@
 import { createClient } from "@/lib/supabase/client";
-import type { RoomState } from "@/components/SurveyShowdown/types";
+import type {
+  ChatMessage,
+  CreateRoomSettings,
+  RoomState,
+} from "@/components/SurveyShowdown/types";
 
 const supabase = createClient();
+
+const ROOM_COLUMNS =
+  "id, code, name, status, visibility, password_hash, max_players, allow_spectators, enable_chat, host_id, round_number, total_rounds, active_team_slot, active_player_id, turn_ends_at";
 
 export async function fetchRoomState(code: string): Promise<RoomState | null> {
   const { data: room, error: roomError } = await supabase
     .from("survey_showdown_rooms")
-    .select("*")
+    .select(ROOM_COLUMNS)
     .eq("code", code)
     .maybeSingle();
 
@@ -49,16 +56,26 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
   return {
     roomId: room.id,
     code: room.code,
+    name: room.name,
+    status: room.status as RoomState["status"],
+    visibility: room.visibility as RoomState["visibility"],
+    hasPassword: room.password_hash !== null,
+    maxPlayers: room.max_players,
+    allowSpectators: room.allow_spectators,
+    enableChat: room.enable_chat,
+    hostId: room.host_id,
     roundNumber: room.round_number,
     totalRounds: room.total_rounds,
     activeTeamSlot: room.active_team_slot as 1 | 2,
+    activePlayerId: room.active_player_id,
+    turnEndsAt: room.turn_ends_at,
     teams: (teams ?? [])
       .map((t) => ({
         id: t.id,
         name: t.name,
         slot: t.slot as 1 | 2,
         score: t.score,
-        players: (t.players ?? []).map((p) => ({ id: p.id, name: p.name })),
+        players: (t.players ?? []).map((p) => ({ id: p.id, name: p.name, userId: p.user_id })),
       }))
       .sort((a, b) => a.slot - b.slot),
     currentPrompt: currentRound
@@ -83,6 +100,11 @@ export function subscribeToRoom(roomId: string, onChange: () => void) {
     )
     .on(
       "postgres_changes",
+      { event: "*", schema: "public", table: "survey_showdown_players" },
+      onChange,
+    )
+    .on(
+      "postgres_changes",
       {
         event: "*",
         schema: "public",
@@ -98,17 +120,122 @@ export function subscribeToRoom(roomId: string, onChange: () => void) {
   };
 }
 
-export const revealNextAnswer = (roomId: string) =>
-  supabase.rpc("survey_showdown_reveal_next_answer", { p_room_id: roomId });
-
-export const revealSpecificAnswer = (roomId: string, answerId: string) =>
-  supabase.rpc("survey_showdown_reveal_specific_answer", {
-    p_room_id: roomId,
-    p_answer_id: answerId,
-  });
-
 export const advanceRound = (roomId: string) =>
   supabase.rpc("survey_showdown_advance_round", { p_room_id: roomId });
 
-export const setActiveTeam = (roomId: string, slot: 1 | 2) =>
-  supabase.rpc("survey_showdown_set_active_team", { p_room_id: roomId, p_slot: slot });
+export interface SubmitAnswerResult {
+  correct: boolean;
+  timedOut?: boolean;
+  answerId?: string;
+  text?: string;
+  points?: number;
+}
+
+export async function submitAnswer(
+  roomId: string,
+  text: string,
+): Promise<SubmitAnswerResult | { error: string }> {
+  const { data, error } = await supabase.rpc("survey_showdown_submit_answer", {
+    p_room_id: roomId,
+    p_text: text,
+  });
+  if (error) return { error: error.message };
+  return data as unknown as SubmitAnswerResult;
+}
+
+export const expireTurn = (roomId: string) =>
+  supabase.rpc("survey_showdown_expire_turn", { p_room_id: roomId });
+
+export async function createRoom(
+  settings: CreateRoomSettings,
+): Promise<{ code: string } | { error: string }> {
+  const { data, error } = await supabase.rpc("survey_showdown_create_room", {
+    p_name: settings.name,
+    p_visibility: settings.visibility,
+    p_password: settings.password,
+    p_max_players: settings.maxPlayers,
+    p_allow_spectators: settings.allowSpectators,
+    p_enable_chat: settings.enableChat,
+  });
+
+  if (error || !data) return { error: error?.message ?? "Couldn't create room." };
+  return { code: data };
+}
+
+export async function verifyRoomPassword(code: string, password: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("survey_showdown_verify_password", {
+    p_code: code,
+    p_password: password,
+  });
+  return !error && data === true;
+}
+
+export async function joinTeam(roomId: string, slot: 1 | 2): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("survey_showdown_join_team", {
+    p_room_id: roomId,
+    p_slot: slot,
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function leaveTeam(roomId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("survey_showdown_leave_team", { p_room_id: roomId });
+  return error ? { error: error.message } : {};
+}
+
+export async function startGame(roomId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("survey_showdown_start_game", { p_room_id: roomId });
+  return error ? { error: error.message } : {};
+}
+
+export async function getCurrentUser() {
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+}
+
+const CHAT_HISTORY_LIMIT = 100;
+
+function toChatMessage(row: {
+  id: string;
+  user_id: string | null;
+  name: string;
+  text: string;
+  created_at: string;
+}): ChatMessage {
+  return { id: row.id, userId: row.user_id, name: row.name, text: row.text, createdAt: row.created_at };
+}
+
+export async function fetchChatMessages(roomId: string): Promise<ChatMessage[]> {
+  const { data } = await supabase
+    .from("survey_showdown_messages")
+    .select("*")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: false })
+    .limit(CHAT_HISTORY_LIMIT);
+
+  return (data ?? []).map(toChatMessage).reverse();
+}
+
+export function subscribeToChat(roomId: string, onMessage: (message: ChatMessage) => void) {
+  const channel = supabase
+    .channel(`room-chat-${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "survey_showdown_messages",
+        filter: `room_id=eq.${roomId}`,
+      },
+      (payload) => onMessage(toChatMessage(payload.new as Parameters<typeof toChatMessage>[0])),
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+export async function sendChatMessage(roomId: string, text: string): Promise<void> {
+  await supabase.rpc("survey_showdown_send_chat_message", { p_room_id: roomId, p_text: text });
+}

@@ -12,7 +12,6 @@ import {
   ChatIcon,
   CheckIcon,
   ChevronDownIcon,
-  ClockIcon,
   EyeIcon,
   EyeOffIcon,
   GlobeIcon,
@@ -47,15 +46,25 @@ function generateRoomCode() {
 const TIPS = [
   "A clear room name helps friends find you.",
   "Private rooms are perfect for invited groups.",
-  "Auto-start keeps the game moving!",
+  "Only the host can start the game.",
   "You can change settings anytime in the lobby.",
 ];
 
-interface CreateRoomFormProps {
-  game: GameLobbyInfo;
+export interface RoomSettings {
+  roomName: string;
+  visibility: "public" | "private";
+  password: string;
+  maxPlayers: number;
+  allowSpectators: boolean;
+  enableChat: boolean;
 }
 
-export function CreateRoomForm({ game }: CreateRoomFormProps) {
+interface CreateRoomFormProps {
+  game: GameLobbyInfo;
+  onCreateRoom?: (settings: RoomSettings) => Promise<{ code: string } | { error: string }>;
+}
+
+export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
   const router = useRouter();
   const { min, max } = useMemo(() => parsePlayerRange(game.players), [game.players]);
 
@@ -64,15 +73,37 @@ export function CreateRoomForm({ game }: CreateRoomFormProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState(max);
-  const [autoStart, setAutoStart] = useState(true);
   const [allowSpectators, setAllowSpectators] = useState(true);
   const [enableChat, setEnableChat] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const previewName = roomName.trim() || "Friday Night Fun";
   const playerCounts = Array.from({ length: max - min + 1 }, (_, i) => min + i);
 
-  function handleCreateRoom() {
-    router.push(`/games/${game.slug}/room/${generateRoomCode()}`);
+  async function handleCreateRoom() {
+    if (!onCreateRoom) {
+      router.push(`/games/${game.slug}/room/${generateRoomCode()}`);
+      return;
+    }
+
+    setError(null);
+    setCreating(true);
+    const result = await onCreateRoom({
+      roomName,
+      visibility,
+      password,
+      maxPlayers,
+      allowSpectators,
+      enableChat,
+    });
+    setCreating(false);
+
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    router.push(`/games/${game.slug}/room/${result.code}`);
   }
 
   return (
@@ -238,20 +269,6 @@ export function CreateRoomForm({ game }: CreateRoomFormProps) {
               <div className="flex flex-col divide-y divide-card-foreground/5 rounded-xl border border-card-foreground/10">
                 <div className="flex items-center justify-between gap-4 p-4">
                   <div className="flex items-center gap-3">
-                    <ClockIcon className="h-5 w-5 shrink-0 text-card-muted" />
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground">
-                        Auto-start when full
-                      </p>
-                      <p className="text-xs text-card-muted">
-                        Start the game automatically when the room is full.
-                      </p>
-                    </div>
-                  </div>
-                  <Switch checked={autoStart} onChange={setAutoStart} label="Auto-start when full" />
-                </div>
-                <div className="flex items-center justify-between gap-4 p-4">
-                  <div className="flex items-center gap-3">
                     <UserIcon className="h-5 w-5 shrink-0 text-card-muted" />
                     <div>
                       <p className="text-sm font-medium text-card-foreground">Allow spectators</p>
@@ -285,15 +302,26 @@ export function CreateRoomForm({ game }: CreateRoomFormProps) {
               </div>
             </div>
 
+            {error && (
+              <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                {error}
+              </p>
+            )}
+
             <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
               <Link href={`/games/${game.slug}`}>
                 <Button variant="ghost" className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </Link>
-              <Button variant="primary" className="w-full sm:w-auto" onClick={handleCreateRoom}>
+              <Button
+                variant="primary"
+                className="w-full sm:w-auto"
+                onClick={handleCreateRoom}
+                disabled={creating}
+              >
                 <UsersIcon className="h-4 w-4" />
-                Create Room
+                {creating ? "Creating…" : "Create Room"}
               </Button>
             </div>
           </div>

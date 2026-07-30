@@ -29,10 +29,10 @@ const TEAM_STYLES = {
 interface TeamPanelProps {
   team: Team;
   active: boolean;
-  onSetActive: () => void;
+  activePlayerId: string | null;
 }
 
-function TeamPanel({ team, active, onSetActive }: TeamPanelProps) {
+function TeamPanel({ team, active, activePlayerId }: TeamPanelProps) {
   const style = TEAM_STYLES[team.slot];
 
   return (
@@ -41,27 +41,32 @@ function TeamPanel({ team, active, onSetActive }: TeamPanelProps) {
         active ? "border-primary/60 shadow-[0_0_0_2px_var(--color-primary)]" : "border-white/10"
       }`}
     >
-      <button
-        type="button"
-        onClick={onSetActive}
-        title="Set as team in control"
+      <span
         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white ${style.badge}`}
       >
         {style.label}
-      </button>
+      </span>
       <p className="mt-3 text-4xl font-extrabold text-white">{team.score}</p>
       <ul className="mt-4 flex flex-col gap-3">
-        {team.players.map((player) => (
-          <li key={player.id} className="flex items-center gap-3">
-            <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-              style={{ backgroundColor: avatarColor(player.name) }}
-            >
-              {initials(player.name)}
-            </span>
-            <span className="text-sm text-white/90">{player.name}</span>
-          </li>
-        ))}
+        {team.players.map((player) => {
+          const isUp = player.id === activePlayerId;
+          return (
+            <li key={player.id} className="flex items-center gap-3">
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+                  isUp ? "ring-2 ring-amber-400" : ""
+                }`}
+                style={{ backgroundColor: avatarColor(player.name) }}
+              >
+                {initials(player.name)}
+              </span>
+              <span className={`text-sm ${isUp ? "font-semibold text-white" : "text-white/90"}`}>
+                {player.name}
+              </span>
+              {isUp && <span className="text-xs font-semibold text-amber-400">Up now</span>}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -70,10 +75,10 @@ function TeamPanel({ team, active, onSetActive }: TeamPanelProps) {
 interface TeamSidebarProps {
   teams: Team[];
   activeTeamSlot: 1 | 2;
-  onSetActiveTeam: (slot: 1 | 2) => void;
+  activePlayerId: string | null;
 }
 
-export function TeamSidebar({ teams, activeTeamSlot, onSetActiveTeam }: TeamSidebarProps) {
+export function TeamSidebar({ teams, activeTeamSlot, activePlayerId }: TeamSidebarProps) {
   return (
     <div className="flex flex-col gap-4">
       {teams.map((team) => (
@@ -81,7 +86,7 @@ export function TeamSidebar({ teams, activeTeamSlot, onSetActiveTeam }: TeamSide
           key={team.id}
           team={team}
           active={team.slot === activeTeamSlot}
-          onSetActive={() => onSetActiveTeam(team.slot)}
+          activePlayerId={activePlayerId}
         />
       ))}
     </div>
