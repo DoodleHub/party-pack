@@ -48,7 +48,13 @@ export function RoomRow({ gameSlug, room, isYourRoom = false }: RoomRowProps) {
           {status.locked && <LockIcon className="h-3.5 w-3.5" />}
         </div>
 
-        {room.status === "full" ? (
+        {room.isPlayer ? (
+          <Link href={roomHref}>
+            <Button variant="primary" className="min-w-32">
+              Rejoin Game
+            </Button>
+          </Link>
+        ) : room.status === "full" ? (
           <Button variant="ghost" disabled className="min-w-32">
             Room Full
           </Button>

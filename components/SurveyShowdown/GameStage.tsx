@@ -18,6 +18,11 @@ interface GameStageProps {
   isMyTurn: boolean;
   turnEndsAt: string | null;
   onSubmitAnswer: (text: string) => Promise<SubmitAnswerResult | { error: string }>;
+  stuck: boolean;
+  allRevealed: boolean;
+  isHost: boolean;
+  onRevealAll: () => Promise<{ error?: string } | void>;
+  onNextRound: () => Promise<void>;
 }
 
 function AnswerRow({ rank, answer }: { rank: number; answer: Answer | undefined }) {
@@ -65,10 +70,16 @@ export function GameStage({
   isMyTurn,
   turnEndsAt,
   onSubmitAnswer,
+  stuck,
+  allRevealed,
+  isHost,
+  onRevealAll,
+  onNextRound,
 }: GameStageProps) {
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ correct: boolean; text: string } | null>(null);
+  const [resolving, setResolving] = useState(false);
 
   const remainingMs = useCountdown(turnEndsAt);
   const remainingSeconds = Math.ceil(remainingMs / 1000);
@@ -96,21 +107,58 @@ export function GameStage({
     setTimeout(() => setFeedback(null), 2000);
   }
 
+  async function handleRevealAll() {
+    setResolving(true);
+    await onRevealAll();
+    setResolving(false);
+  }
+
+  async function handleNextRound() {
+    setResolving(true);
+    await onNextRound();
+    setResolving(false);
+  }
+
   return (
     <div className="flex flex-col items-center">
-      <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-6 py-3 text-center text-white">
-        <p className="text-sm">
-          <span className={`font-bold ${TEAM_COLORS[activeTeamSlot]}`}>TEAM {activeTeamSlot}</span>
-          {activePlayerName && <span className="text-white/70"> — {activePlayerName}&apos;s turn</span>}
-        </p>
-        <p
-          className={`text-3xl font-extrabold tabular-nums ${
-            remainingSeconds <= 5 ? "text-red-400" : "text-amber-400"
-          }`}
-        >
-          {remainingSeconds}s
-        </p>
-      </div>
+      {stuck ? (
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-red-400/40 bg-black/50 px-6 py-3 text-center text-white">
+          <p className="text-lg font-bold text-red-400">Both teams are out of chances!</p>
+          {isHost ? (
+            <Button
+              variant="primary"
+              onClick={allRevealed ? handleNextRound : handleRevealAll}
+              disabled={resolving}
+            >
+              {resolving
+                ? "Working…"
+                : allRevealed
+                  ? "Next Round"
+                  : "Reveal All Answers"}
+            </Button>
+          ) : (
+            <p className="text-sm text-white/60">
+              {allRevealed
+                ? "Waiting for the host to move to the next round…"
+                : "Waiting for the host to reveal the remaining answers…"}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-6 py-3 text-center text-white">
+          <p className="text-sm">
+            <span className={`font-bold ${TEAM_COLORS[activeTeamSlot]}`}>TEAM {activeTeamSlot}</span>
+            {activePlayerName && <span className="text-white/70"> — {activePlayerName}&apos;s turn</span>}
+          </p>
+          <p
+            className={`text-3xl font-extrabold tabular-nums ${
+              remainingSeconds <= 5 ? "text-red-400" : "text-amber-400"
+            }`}
+          >
+            {remainingSeconds}s
+          </p>
+        </div>
+      )}
 
       <div className="relative mt-4 w-full rounded-2xl border-2 border-amber-400/60 bg-[#080f28]/90 p-5 shadow-[inset_0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-sm sm:p-8">
         <h2 className="text-center text-2xl font-bold text-white sm:text-4xl">
@@ -131,37 +179,39 @@ export function GameStage({
         </div>
       </div>
 
-      <div className="mt-6 flex w-full max-w-md flex-col items-center gap-3">
-        {feedback && (
-          <p className={`text-sm font-semibold ${feedback.correct ? "text-emerald-400" : "text-red-400"}`}>
-            {feedback.text}
-          </p>
-        )}
+      {!stuck && (
+        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-3">
+          {feedback && (
+            <p className={`text-sm font-semibold ${feedback.correct ? "text-emerald-400" : "text-red-400"}`}>
+              {feedback.text}
+            </p>
+          )}
 
-        {isMyTurn ? (
-          <div className="flex w-full items-center gap-2">
-            <input
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
-              }}
-              placeholder="Type your answer…"
-              autoFocus
-              disabled={submitting}
-              className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
-            />
-            <Button variant="primary" size="lg" onClick={handleSubmit} disabled={submitting || !draft.trim()}>
-              {submitting ? "Sending…" : "Submit"}
-            </Button>
-          </div>
-        ) : (
-          <p className="text-sm text-white/60">
-            Waiting for {activePlayerName ?? "the other player"} to answer…
-          </p>
-        )}
-      </div>
+          {isMyTurn ? (
+            <div className="flex w-full items-center gap-2">
+              <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmit();
+                }}
+                placeholder="Type your answer…"
+                autoFocus
+                disabled={submitting}
+                className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+              />
+              <Button variant="primary" size="lg" onClick={handleSubmit} disabled={submitting || !draft.trim()}>
+                {submitting ? "Sending…" : "Submit"}
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-white/60">
+              Waiting for {activePlayerName ?? "the other player"} to answer…
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

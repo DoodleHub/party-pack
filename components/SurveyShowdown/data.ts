@@ -75,6 +75,8 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
         name: t.name,
         slot: t.slot as 1 | 2,
         score: t.score,
+        strikes:
+          t.slot === 1 ? (currentRound?.team1_strikes ?? 0) : (currentRound?.team2_strikes ?? 0),
         players: (t.players ?? []).map((p) => ({ id: p.id, name: p.name, userId: p.user_id })),
       }))
       .sort((a, b) => a.slot - b.slot),
@@ -146,6 +148,13 @@ export async function submitAnswer(
 export const expireTurn = (roomId: string) =>
   supabase.rpc("survey_showdown_expire_turn", { p_room_id: roomId });
 
+export async function revealAllAnswers(roomId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("survey_showdown_reveal_all_answers", {
+    p_room_id: roomId,
+  });
+  return error ? { error: error.message } : {};
+}
+
 export async function createRoom(
   settings: CreateRoomSettings,
 ): Promise<{ code: string } | { error: string }> {
@@ -181,6 +190,44 @@ export async function joinTeam(roomId: string, slot: 1 | 2): Promise<{ error?: s
 export async function leaveTeam(roomId: string): Promise<{ error?: string }> {
   const { error } = await supabase.rpc("survey_showdown_leave_team", { p_room_id: roomId });
   return error ? { error: error.message } : {};
+}
+
+export async function removePlayer(roomId: string, playerId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_remove_player", {
+    p_room_id: roomId,
+    p_player_id: playerId,
+  });
+}
+
+// Tracks who currently has this room open (detects tab/browser close, not just
+// explicit "Leave Team"). Presence key = userId, so multiple tabs from the same
+// user correctly count as one online player.
+export function subscribeToPresence(
+  roomId: string,
+  userId: string,
+  onSync: (onlineUserIds: Set<string>) => void,
+  onLeave: (userId: string) => void,
+) {
+  const channel = supabase.channel(`room-presence-${roomId}`, {
+    config: { presence: { key: userId } },
+  });
+
+  channel
+    .on("presence", { event: "sync" }, () => {
+      onSync(new Set(Object.keys(channel.presenceState())));
+    })
+    .on("presence", { event: "leave" }, ({ key }: { key: string }) => {
+      onLeave(key);
+    })
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        channel.track({ online_at: new Date().toISOString() });
+      }
+    });
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 export async function startGame(roomId: string): Promise<{ error?: string }> {

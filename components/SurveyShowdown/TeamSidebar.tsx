@@ -30,9 +30,10 @@ interface TeamPanelProps {
   team: Team;
   active: boolean;
   activePlayerId: string | null;
+  onlineUserIds: Set<string>;
 }
 
-function TeamPanel({ team, active, activePlayerId }: TeamPanelProps) {
+function TeamPanel({ team, active, activePlayerId, onlineUserIds }: TeamPanelProps) {
   const style = TEAM_STYLES[team.slot];
 
   return (
@@ -46,19 +47,42 @@ function TeamPanel({ team, active, activePlayerId }: TeamPanelProps) {
       >
         {style.label}
       </span>
-      <p className="mt-3 text-4xl font-extrabold text-white">{team.score}</p>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <p className="text-4xl font-extrabold text-white">{team.score}</p>
+        <div className="flex items-center gap-1 pb-1" title={`${team.strikes} / 3 strikes`}>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                i < team.strikes ? "bg-red-500 text-white" : "bg-white/10 text-white/30"
+              }`}
+            >
+              ✕
+            </span>
+          ))}
+        </div>
+      </div>
       <ul className="mt-4 flex flex-col gap-3">
         {team.players.map((player) => {
           const isUp = player.id === activePlayerId;
+          const online = !!player.userId && onlineUserIds.has(player.userId);
           return (
             <li key={player.id} className="flex items-center gap-3">
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
-                  isUp ? "ring-2 ring-amber-400" : ""
-                }`}
-                style={{ backgroundColor: avatarColor(player.name) }}
-              >
-                {initials(player.name)}
+              <span className="relative shrink-0">
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${
+                    isUp ? "ring-2 ring-amber-400" : ""
+                  }`}
+                  style={{ backgroundColor: avatarColor(player.name) }}
+                >
+                  {initials(player.name)}
+                </span>
+                <span
+                  title={online ? "Online" : "Offline"}
+                  className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 ${
+                    online ? "bg-emerald-400" : "bg-zinc-400"
+                  }`}
+                />
               </span>
               <span className={`text-sm ${isUp ? "font-semibold text-white" : "text-white/90"}`}>
                 {player.name}
@@ -76,9 +100,15 @@ interface TeamSidebarProps {
   teams: Team[];
   activeTeamSlot: 1 | 2;
   activePlayerId: string | null;
+  onlineUserIds: Set<string>;
 }
 
-export function TeamSidebar({ teams, activeTeamSlot, activePlayerId }: TeamSidebarProps) {
+export function TeamSidebar({
+  teams,
+  activeTeamSlot,
+  activePlayerId,
+  onlineUserIds,
+}: TeamSidebarProps) {
   return (
     <div className="flex flex-col gap-4">
       {teams.map((team) => (
@@ -87,6 +117,7 @@ export function TeamSidebar({ teams, activeTeamSlot, activePlayerId }: TeamSideb
           team={team}
           active={team.slot === activeTeamSlot}
           activePlayerId={activePlayerId}
+          onlineUserIds={onlineUserIds}
         />
       ))}
     </div>

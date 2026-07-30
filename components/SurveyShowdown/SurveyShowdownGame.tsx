@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import surveyShowdownStage from "@/public/games/survey-showdown-stage.png";
@@ -25,8 +25,11 @@ import {
   getCurrentUser,
   joinTeam,
   leaveTeam,
+  removePlayer,
+  revealAllAnswers,
   startGame,
   submitAnswer,
+  subscribeToPresence,
   subscribeToRoom,
   verifyRoomPassword,
 } from "@/components/SurveyShowdown/data";
@@ -34,6 +37,10 @@ import type { RoomState } from "@/components/SurveyShowdown/types";
 import { games } from "@/lib/games";
 
 const gameInfo = games.find((g) => g.slug === "survey-showdown")!;
+
+// How long to wait after a presence "leave" before treating it as a real
+// departure — absorbs quick page refreshes/reconnects without a false kick.
+const DISCONNECT_GRACE_MS = 8000;
 
 function RoomCodeChip({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -97,12 +104,20 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+
+  const stateRef = useRef<RoomState | null>(null);
+  const onlineIdsRef = useRef<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     const next = await fetchRoomState(roomCode);
     setState(next);
     setLoading(false);
   }, [roomCode]);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch on mount
@@ -119,18 +134,51 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.roomId]);
 
+  // Detects players closing their tab/browser (not just clicking "Leave Team").
+  // While the room is still waiting to start, a departed player's seat is
+  // freed up automatically after a short grace period.
+  useEffect(() => {
+    if (!state?.roomId || !userId) return;
+    return subscribeToPresence(
+      state.roomId,
+      userId,
+      (ids) => {
+        onlineIdsRef.current = ids;
+        setOnlineUserIds(ids);
+      },
+      (leftUserId) => {
+        setTimeout(() => {
+          if (onlineIdsRef.current.has(leftUserId)) return;
+          const current = stateRef.current;
+          if (!current || current.status !== "waiting") return;
+          const player = current.teams
+            .flatMap((t) => t.players)
+            .find((p) => p.userId === leftUserId);
+          if (!player) return;
+          removePlayer(current.roomId, player.id).then(refresh);
+        }, DISCONNECT_GRACE_MS);
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.roomId, userId]);
+
   const allRevealed =
     !!state && state.currentAnswers.length > 0 && state.currentAnswers.every((a) => a.revealed);
 
-  // Auto-advance to the next round shortly after the last answer is revealed.
+  // Once both teams have struck out, the turn engine pauses (active_player_id
+  // is cleared) and the round waits on the host to reveal + advance manually.
+  const stuck = !!state && state.status === "active" && state.activePlayerId === null;
+
+  // Auto-advance to the next round shortly after the last answer is revealed —
+  // but not if the round is paused waiting on the host to resolve it manually.
   useEffect(() => {
-    if (!state || state.status !== "active" || !allRevealed) return;
+    if (!state || state.status !== "active" || !allRevealed || stuck) return;
     const timeout = setTimeout(() => {
       advanceRound(state.roomId).then(refresh);
     }, 2500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allRevealed, state?.roomId, state?.status, state?.roundNumber]);
+  }, [allRevealed, stuck, state?.roomId, state?.status, state?.roundNumber]);
 
   // Force a turn to expire exactly when its timer runs out, so the game
   // keeps moving even if the active player is idle or has disconnected.
@@ -154,6 +202,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
     ? (state.teams.flatMap((t) => t.players).find((p) => p.userId === userId)?.id ?? null)
     : null;
   const isPlayer = myPlayerId !== null;
+  const isHost = !!(state && userId && state.hostId === userId);
   const isMyTurn = !!state && state.activePlayerId !== null && state.activePlayerId === myPlayerId;
   const activePlayerName = state
     ? (state.teams.flatMap((t) => t.players).find((p) => p.id === state.activePlayerId)?.name ??
@@ -198,6 +247,19 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
     const result = await startGame(state.roomId);
     await refresh();
     return result;
+  }
+
+  async function handleRevealAll() {
+    if (!state) return;
+    const result = await revealAllAnswers(state.roomId);
+    await refresh();
+    return result;
+  }
+
+  async function handleNextRound() {
+    if (!state) return;
+    await advanceRound(state.roomId);
+    await refresh();
   }
 
   return (
@@ -271,6 +333,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
             <WaitingRoom
               room={state}
               currentUserId={userId ?? ""}
+              onlineUserIds={onlineUserIds}
               onJoinTeam={handleJoinTeam}
               onLeaveTeam={handleLeaveTeam}
               onStartGame={handleStartGame}
@@ -289,6 +352,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
                 teams={state.teams}
                 activeTeamSlot={state.activeTeamSlot}
                 activePlayerId={state.activePlayerId}
+                onlineUserIds={onlineUserIds}
               />
 
               <GameStage
@@ -299,6 +363,11 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
                 isMyTurn={isMyTurn}
                 turnEndsAt={state.turnEndsAt}
                 onSubmitAnswer={handleSubmitAnswer}
+                stuck={stuck}
+                allRevealed={allRevealed}
+                isHost={isHost}
+                onRevealAll={handleRevealAll}
+                onNextRound={handleNextRound}
               />
 
               <RoundSidebar roundNumber={state.roundNumber} totalRounds={state.totalRounds} />

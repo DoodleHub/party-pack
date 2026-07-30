@@ -222,6 +222,8 @@ export type Database = {
           room_id: string
           round_number: number
           status: string
+          team1_strikes: number
+          team2_strikes: number
         }
         Insert: {
           id?: string
@@ -231,6 +233,8 @@ export type Database = {
           room_id: string
           round_number: number
           status?: string
+          team1_strikes?: number
+          team2_strikes?: number
         }
         Update: {
           id?: string
@@ -240,6 +244,8 @@ export type Database = {
           room_id?: string
           round_number?: number
           status?: string
+          team1_strikes?: number
+          team2_strikes?: number
         }
         Relationships: [
           {
@@ -423,11 +429,23 @@ export type Database = {
         Returns: undefined
       }
       survey_showdown_normalize: { Args: { p_text: string }; Returns: string }
+      survey_showdown_register_miss: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_remove_player: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
       survey_showdown_reset_scores: {
         Args: { p_room_id: string }
         Returns: undefined
       }
       survey_showdown_restart_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      survey_showdown_reveal_all_answers: {
         Args: { p_room_id: string }
         Returns: undefined
       }

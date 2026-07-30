@@ -9,6 +9,7 @@ export interface Team {
   name: string;
   slot: 1 | 2;
   score: number;
+  strikes: number;
   players: Player[];
 }
 

@@ -12,6 +12,7 @@ export interface LobbyRoom {
   status: RoomStatus;
   visibility: RoomVisibility;
   createdAt: string;
+  isPlayer?: boolean;
 }
 
 export interface GameLobbyInfo {

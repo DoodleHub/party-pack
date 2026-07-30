@@ -15,6 +15,7 @@ const TEAM_STYLES = {
 interface WaitingRoomProps {
   room: RoomState;
   currentUserId: string;
+  onlineUserIds: Set<string>;
   onJoinTeam: (slot: 1 | 2) => Promise<{ error?: string }>;
   onLeaveTeam: () => Promise<void>;
   onStartGame: () => Promise<{ error?: string }>;
@@ -23,6 +24,7 @@ interface WaitingRoomProps {
 export function WaitingRoom({
   room,
   currentUserId,
+  onlineUserIds,
   onJoinTeam,
   onLeaveTeam,
   onStartGame,
@@ -108,17 +110,28 @@ export function WaitingRoom({
                 {team.players.length === 0 ? (
                   <li className="text-sm text-white/40">No players yet</li>
                 ) : (
-                  team.players.map((p) => (
-                    <li key={p.id} className="flex items-center gap-2 text-sm">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold">
-                        {p.name.slice(0, 2).toUpperCase()}
-                      </span>
-                      {p.name}
-                      {p.userId === room.hostId && (
-                        <CrownIcon className="h-3.5 w-3.5 text-amber-400" />
-                      )}
-                    </li>
-                  ))
+                  team.players.map((p) => {
+                    const online = !!p.userId && onlineUserIds.has(p.userId);
+                    return (
+                      <li key={p.id} className="flex items-center gap-2 text-sm">
+                        <span className="relative shrink-0">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs font-bold">
+                            {p.name.slice(0, 2).toUpperCase()}
+                          </span>
+                          <span
+                            title={online ? "Online" : "Offline"}
+                            className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 ${
+                              online ? "bg-emerald-400" : "bg-zinc-400"
+                            }`}
+                          />
+                        </span>
+                        {p.name}
+                        {p.userId === room.hostId && (
+                          <CrownIcon className="h-3.5 w-3.5 text-amber-400" />
+                        )}
+                      </li>
+                    );
+                  })
                 )}
               </ul>
 

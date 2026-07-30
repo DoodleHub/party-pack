@@ -29,7 +29,7 @@ export default async function SurveyShowdownLobbyPage() {
     roomIds.length
       ? supabase
           .from("survey_showdown_teams")
-          .select("room_id, players:survey_showdown_players(name)")
+          .select("room_id, players:survey_showdown_players(name, user_id)")
           .in("room_id", roomIds)
       : Promise.resolve({ data: [] }),
     hostIds.length
@@ -39,12 +39,16 @@ export default async function SurveyShowdownLobbyPage() {
 
   const hostNameById = new Map((hostProfiles ?? []).map((p) => [p.id, p.username]));
   const playerNamesByRoom = new Map<string, string[]>();
+  const roomsYouAreIn = new Set<string>();
   for (const team of teamsWithPlayers ?? []) {
     const names = (team.players ?? []).map((p) => p.name);
     playerNamesByRoom.set(team.room_id, [
       ...(playerNamesByRoom.get(team.room_id) ?? []),
       ...names,
     ]);
+    if (user && (team.players ?? []).some((p) => p.user_id === user.id)) {
+      roomsYouAreIn.add(team.room_id);
+    }
   }
 
   const lobbyRooms: LobbyRoom[] = rooms.map((room) => {
@@ -60,6 +64,7 @@ export default async function SurveyShowdownLobbyPage() {
       status: room.status === "active" ? "in-progress" : isFull ? "full" : "waiting",
       visibility: room.visibility as LobbyRoom["visibility"],
       createdAt: room.created_at,
+      isPlayer: roomsYouAreIn.has(room.id),
     };
   });
 
