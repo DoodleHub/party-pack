@@ -14,6 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
+      koup_cards: {
+        Row: {
+          character: string
+          id: string
+          player_id: string | null
+          revealed: boolean
+          room_id: string
+        }
+        Insert: {
+          character: string
+          id?: string
+          player_id?: string | null
+          revealed?: boolean
+          room_id: string
+        }
+        Update: {
+          character?: string
+          id?: string
+          player_id?: string | null
+          revealed?: boolean
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koup_cards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "koup_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "koup_cards_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "koup_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      koup_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          room_id: string
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          room_id: string
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          room_id?: string
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koup_chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "koup_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      koup_log_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          room_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koup_log_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "koup_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      koup_players: {
+        Row: {
+          coins: number
+          created_at: string
+          eliminated: boolean
+          id: string
+          influence_remaining: number
+          name: string
+          room_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          eliminated?: boolean
+          id?: string
+          influence_remaining?: number
+          name: string
+          room_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          eliminated?: boolean
+          id?: string
+          influence_remaining?: number
+          name?: string
+          room_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koup_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "koup_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      koup_rooms: {
+        Row: {
+          allow_spectators: boolean
+          code: string
+          created_at: string
+          deck_count: number
+          enable_chat: boolean
+          host_id: string | null
+          id: string
+          max_players: number
+          name: string
+          password_hash: string | null
+          pending_action: Json | null
+          pending_block: Json | null
+          pending_loss: Json | null
+          phase: string
+          response_deadline: string | null
+          status: string
+          turn_number: number
+          turn_player_id: string | null
+          updated_at: string
+          visibility: string
+          winner_player_id: string | null
+        }
+        Insert: {
+          allow_spectators?: boolean
+          code: string
+          created_at?: string
+          deck_count?: number
+          enable_chat?: boolean
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          password_hash?: string | null
+          pending_action?: Json | null
+          pending_block?: Json | null
+          pending_loss?: Json | null
+          phase?: string
+          response_deadline?: string | null
+          status?: string
+          turn_number?: number
+          turn_player_id?: string | null
+          updated_at?: string
+          visibility?: string
+          winner_player_id?: string | null
+        }
+        Update: {
+          allow_spectators?: boolean
+          code?: string
+          created_at?: string
+          deck_count?: number
+          enable_chat?: boolean
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          password_hash?: string | null
+          pending_action?: Json | null
+          pending_block?: Json | null
+          pending_loss?: Json | null
+          phase?: string
+          response_deadline?: string | null
+          status?: string
+          turn_number?: number
+          turn_player_id?: string | null
+          updated_at?: string
+          visibility?: string
+          winner_player_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koup_rooms_turn_player_id_fkey"
+            columns: ["turn_player_id"]
+            isOneToOne: false
+            referencedRelation: "koup_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "koup_rooms_winner_player_id_fkey"
+            columns: ["winner_player_id"]
+            isOneToOne: false
+            referencedRelation: "koup_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -388,6 +625,111 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      koup_advance_turn: { Args: { p_room_id: string }; Returns: undefined }
+      koup_announce_disconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_announce_left_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      koup_announce_reconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_apply_exchange_selection: {
+        Args: {
+          p_actor_player_id: string
+          p_keep_card_ids: string[]
+          p_room_id: string
+        }
+        Returns: undefined
+      }
+      koup_apply_influence_loss: {
+        Args: { p_card_id: string; p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_block_action: {
+        Args: { p_claimed_character: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_challenge_action: { Args: { p_room_id: string }; Returns: undefined }
+      koup_challenge_block: { Args: { p_room_id: string }; Returns: undefined }
+      koup_character_label: { Args: { p_character: string }; Returns: string }
+      koup_choose_influence: {
+        Args: { p_card_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_claim_host: { Args: { p_room_id: string }; Returns: undefined }
+      koup_create_room: {
+        Args: {
+          p_allow_spectators: boolean
+          p_enable_chat: boolean
+          p_max_players: number
+          p_name: string
+          p_password: string
+          p_visibility: string
+        }
+        Returns: string
+      }
+      koup_declare_action: {
+        Args: {
+          p_action: string
+          p_room_id: string
+          p_target_player_id?: string
+        }
+        Returns: undefined
+      }
+      koup_do_declare_action: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_room_id: string
+          p_target_player_id: string
+        }
+        Returns: undefined
+      }
+      koup_expire_response: { Args: { p_room_id: string }; Returns: undefined }
+      koup_fail_pending_action: {
+        Args: { p_log_text: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_join_room: { Args: { p_room_id: string }; Returns: undefined }
+      koup_leave_room: { Args: { p_room_id: string }; Returns: undefined }
+      koup_post_log_event: {
+        Args: { p_kind: string; p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      koup_reassign_or_delete_room: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_remove_player: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_resolve_exchange: {
+        Args: { p_keep_card_ids: string[]; p_room_id: string }
+        Returns: undefined
+      }
+      koup_send_chat_message: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      koup_start_game: { Args: { p_room_id: string }; Returns: undefined }
+      koup_succeed_pending_action: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      koup_transfer_host: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      koup_verify_password: {
+        Args: { p_code: string; p_password: string }
+        Returns: boolean
+      }
       survey_showdown_advance_round: {
         Args: { p_room_id: string }
         Returns: undefined

@@ -438,3 +438,115 @@ export function TagIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function CoinsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <ellipse cx="9" cy="7.5" rx="5.5" ry="3" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M3.5 7.5V12c0 1.66 2.46 3 5.5 3s5.5-1.34 5.5-3V7.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M3.5 12v4.5c0 1.66 2.46 3 5.5 3 2.4 0 4.44-.85 5.17-2.03"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 9.3c2.87.2 5 1.44 5 2.95 0 1.1-1.12 2.06-2.75 2.56M19 12.25v4.25c0 1.4-1.86 2.6-4.4 2.95"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function HandshakeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M2.5 11.5 6 8l3 2.2M21.5 11.5 18 8l-3.6 2.7"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m9 10.2 3.4 2.6a1.4 1.4 0 0 1-1.7 2.2l-1.9-1.5M14.4 10.7l2.7 2.1a1.4 1.4 0 1 1-1.7 2.2L14 14"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m6 8-3.5 4 3 3.5M18 8l3.5 4-4.3 4.8-3.2-2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function AnchorIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12 7v13M6 12H4c0 3.5 2.7 7 8 8 5.3-1 8-4.5 8-8h-2M8.5 9.5 12 12l3.5-2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SwordIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="m5 19 10.5-10.5M19 5l-2.5 1L15 8.5l1.5 1.5L19 8.5 20 6l-1-1Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m14 10 1.5 1.5M4 20l1.3-3.2L8.5 15.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function MaskIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M3.5 9.5c1.5-3.3 4.7-5 8.5-5s7 1.7 8.5 5c-1.2 3-2 7.5-4.8 9.3-1.3.8-2.5-.6-3.7-.6s-2.4 1.4-3.7.6C5.5 17 4.7 12.5 3.5 9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.5 10c1 1.2 1 3-.3 3.8M17.5 10c-1 1.2-1 3 .3 3.8"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
