@@ -22,7 +22,10 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
       if (!cancelled) setMessages(history);
     });
     const unsubscribe = subscribeToChat(roomId, (message) => {
-      setMessages((prev) => [...prev, message].slice(-200));
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        return [...prev, message].slice(-200);
+      });
     });
     return () => {
       cancelled = true;
