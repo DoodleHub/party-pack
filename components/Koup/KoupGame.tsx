@@ -151,25 +151,30 @@ export function KoupGame({ roomCode }: KoupGameProps) {
         }
       },
       (leftUserId) => {
+        // While waiting, there's no game state to protect and rejoining is
+        // instant (auto-join), so kick immediately instead of waiting out
+        // the reconnect grace period — otherwise the seat lingers for
+        // DISCONNECT_GRACE_MS after the presence dot already went offline.
+        const waitingState = stateRef.current;
+        if (waitingState?.status === "waiting") {
+          const player = waitingState.players.find((p) => p.userId === leftUserId);
+          if (player) removePlayer(waitingState.roomId, player.id).then(refresh);
+          return;
+        }
+
         setTimeout(() => {
           if (onlineIdsRef.current.has(leftUserId)) return;
           const current = stateRef.current;
-          if (!current) return;
-          if (current.status === "waiting") {
+          if (!current || current.status !== "active") return;
+          const remainingOnlineIds = [...onlineIdsRef.current]
+            .filter((id) => id !== leftUserId)
+            .sort();
+          if (remainingOnlineIds[0] === userId) {
             const player = current.players.find((p) => p.userId === leftUserId);
-            if (!player) return;
-            removePlayer(current.roomId, player.id).then(refresh);
-          } else if (current.status === "active") {
-            const remainingOnlineIds = [...onlineIdsRef.current]
-              .filter((id) => id !== leftUserId)
-              .sort();
-            if (remainingOnlineIds[0] === userId) {
-              const player = current.players.find((p) => p.userId === leftUserId);
-              if (player) announceDisconnect(current.roomId, player.id);
-            }
-            if (current.hostId === leftUserId) {
-              transferHost(current.roomId, leftUserId).then(refresh);
-            }
+            if (player) announceDisconnect(current.roomId, player.id);
+          }
+          if (current.hostId === leftUserId) {
+            transferHost(current.roomId, leftUserId).then(refresh);
           }
         }, DISCONNECT_GRACE_MS);
       },

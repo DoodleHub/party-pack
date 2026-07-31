@@ -127,38 +127,47 @@ export function GameTable({ state, myPlayerId, onlineUserIds }: GameTableProps) 
   const ry = 38;
 
   return (
-    <div className="relative mx-auto aspect-16/10 w-full max-w-3xl">
-      <div className="absolute inset-[6%] rounded-[50%] border-4 border-[#5a3f8a]/50 bg-linear-to-b from-[#3a2657] to-[#241539] shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]" />
+    // Seats (cards + avatar + name) have a fixed pixel height, but this
+    // box's height is width-driven (aspect-ratio), so seats always overflow
+    // its top/bottom edge by some amount — worse on narrow widths, but never
+    // fully zero even at max-w-3xl. This padding stays at every breakpoint
+    // (including the lg 3-column layout, whose middle column can be just as
+    // narrow as mobile — e.g. iPad Pro's ~350px) so the overflow lands in
+    // blank space instead of the sidebar/status message stacked around it.
+    <div className="mx-auto w-full max-w-3xl py-16">
+      <div className="relative aspect-16/10 w-full">
+        <div className="absolute inset-[6%] rounded-[50%] border-4 border-[#5a3f8a]/50 bg-linear-to-b from-[#3a2657] to-[#241539] shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]" />
 
-      {banner && BannerIcon && (
-        <div className="absolute top-1/2 left-1/2 flex w-56 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-black/60 px-5 py-4 text-center text-white backdrop-blur-md">
-          <p className="text-xs font-medium text-primary">{banner.title}</p>
-          <p className="flex items-center gap-1.5 text-base font-bold">
-            <BannerIcon className="h-4 w-4 shrink-0" />
-            {banner.body}
-          </p>
-        </div>
-      )}
-
-      {ordered.map((player, i) => {
-        const angle = (angles[i] * Math.PI) / 180;
-        const left = 50 + rx * Math.cos(angle);
-        const top = 50 + ry * Math.sin(angle);
-        return (
-          <div
-            key={player.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${left}%`, top: `${top}%` }}
-          >
-            <Seat
-              player={player}
-              isTurn={player.id === state.turnPlayerId}
-              isMe={player.id === myPlayerId}
-              online={onlineUserIds.has(player.userId)}
-            />
+        {banner && BannerIcon && (
+          <div className="absolute top-1/2 left-1/2 flex w-56 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-black/60 px-5 py-4 text-center text-white backdrop-blur-md">
+            <p className="text-xs font-medium text-primary">{banner.title}</p>
+            <p className="flex items-center gap-1.5 text-base font-bold">
+              <BannerIcon className="h-4 w-4 shrink-0" />
+              {banner.body}
+            </p>
           </div>
-        );
-      })}
+        )}
+
+        {ordered.map((player, i) => {
+          const angle = (angles[i] * Math.PI) / 180;
+          const left = 50 + rx * Math.cos(angle);
+          const top = 50 + ry * Math.sin(angle);
+          return (
+            <div
+              key={player.id}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${left}%`, top: `${top}%` }}
+            >
+              <Seat
+                player={player}
+                isTurn={player.id === state.turnPlayerId}
+                isMe={player.id === myPlayerId}
+                online={onlineUserIds.has(player.userId)}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

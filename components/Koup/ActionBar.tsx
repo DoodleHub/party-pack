@@ -118,6 +118,7 @@ export function ActionBar({
       const targets = state.players.filter((p) => !p.eliminated && p.id !== myPlayer.id);
       return (
         <div className="mx-auto mt-6 flex w-full max-w-xl flex-col items-center gap-3">
+          <Countdown deadline={state.responseDeadline} />
           <div className="flex items-center gap-2 text-white">
             <p className="text-sm font-medium">
               Choose a target for {ACTION_META[pendingTargetAction].label}
@@ -161,6 +162,7 @@ export function ActionBar({
     return (
       <div className="mx-auto mt-6 flex w-full max-w-4xl flex-col items-center gap-3">
         <p className="text-sm text-white/70">Choose an action</p>
+        <Countdown deadline={state.responseDeadline} />
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           {ACTION_ORDER.map((action) => {
             const meta = ACTION_META[action];
@@ -181,21 +183,23 @@ export function ActionBar({
                     }
                   })
                 }
-                className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+                className={`flex min-w-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-colors ${
                   action === "coup"
                     ? "border-primary/60 bg-primary/15 hover:bg-primary/25"
                     : "border-white/10 bg-white/5 hover:bg-white/10"
                 } disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <Icon className={`h-6 w-6 ${meta.color}`} />
-                <span className="font-semibold text-white">{meta.label}</span>
-                <span className="flex flex-col gap-0.5 text-xs text-white/50">
+                <span className="wrap-break-word font-semibold text-white">{meta.label}</span>
+                <span className="flex flex-col gap-0.5 wrap-break-word text-xs text-white/50">
                   {meta.description.map((line) => (
                     <span key={line}>{line}</span>
                   ))}
                 </span>
                 {meta.blockedBy && (
-                  <span className="text-[11px] text-white/40">Blocked by {meta.blockedBy}</span>
+                  <span className="wrap-break-word text-[11px] text-white/40">
+                    Blocked by {meta.blockedBy}
+                  </span>
                 )}
                 {action === "coup" && (
                   <span className="text-[11px] font-medium text-primary">Cannot be blocked</span>
