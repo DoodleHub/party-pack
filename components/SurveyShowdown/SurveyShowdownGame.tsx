@@ -14,7 +14,7 @@ import {
   UsersIcon,
 } from "@/components/ui/Icon";
 import { GameStage } from "@/components/SurveyShowdown/GameStage";
-import { TeamSidebar } from "@/components/SurveyShowdown/TeamSidebar";
+import { TeamSidebar, avatarColor, initials } from "@/components/SurveyShowdown/TeamSidebar";
 import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
 import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
 import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
@@ -115,10 +115,33 @@ function GameOverScreen({ state }: { state: RoomState }) {
         {ranked.map((team) => (
           <div
             key={team.id}
-            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+            className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
           >
-            <span className="font-semibold">{team.name}</span>
-            <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">{team.name}</span>
+              <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
+            </div>
+            <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
+              {[...team.players]
+                .sort((a, b) => b.points - a.points)
+                .map((player) => (
+                  <div
+                    key={player.id}
+                    className="flex items-center justify-between text-sm text-white/70"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                        style={{ backgroundColor: avatarColor(player.name) }}
+                      >
+                        {initials(player.name)}
+                      </span>
+                      {player.name}
+                    </span>
+                    <span className="font-semibold text-white/90">{player.points}</span>
+                  </div>
+                ))}
+            </div>
           </div>
         ))}
       </div>

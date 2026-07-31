@@ -47,7 +47,7 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
     currentAnswers = (answers ?? []).map((a) => ({
       id: a.id,
       text: a.text,
-      points: a.points * currentRound.multiplier,
+      points: a.points,
       rank: a.rank,
       revealed: revealedIds.has(a.id),
     }));
@@ -77,7 +77,12 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
         score: t.score,
         strikes:
           t.slot === 1 ? (currentRound?.team1_strikes ?? 0) : (currentRound?.team2_strikes ?? 0),
-        players: (t.players ?? []).map((p) => ({ id: p.id, name: p.name, userId: p.user_id })),
+        players: (t.players ?? []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          userId: p.user_id,
+          points: p.points,
+        })),
       }))
       .sort((a, b) => a.slot - b.slot),
     currentPrompt: currentRound

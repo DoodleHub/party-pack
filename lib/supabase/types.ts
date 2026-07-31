@@ -153,6 +153,7 @@ export type Database = {
         Row: {
           id: string
           name: string
+          points: number
           sort_order: number
           team_id: string
           user_id: string | null
@@ -160,6 +161,7 @@ export type Database = {
         Insert: {
           id?: string
           name: string
+          points?: number
           sort_order?: number
           team_id: string
           user_id?: string | null
@@ -167,6 +169,7 @@ export type Database = {
         Update: {
           id?: string
           name?: string
+          points?: number
           sort_order?: number
           team_id?: string
           user_id?: string | null

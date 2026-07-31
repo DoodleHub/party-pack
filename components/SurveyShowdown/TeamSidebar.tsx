@@ -12,13 +12,13 @@ const AVATAR_COLORS = [
   "#3b82f6",
 ];
 
-function avatarColor(name: string) {
+export function avatarColor(name: string) {
   let hash = 0;
   for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
-function initials(name: string) {
+export function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
