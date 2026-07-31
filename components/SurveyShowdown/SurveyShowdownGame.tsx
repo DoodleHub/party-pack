@@ -214,22 +214,37 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
               .find((p) => p.userId === leftUserId);
             if (!player) return;
             removePlayer(current.roomId, player.id).then(refresh);
-          } else if (current.status === "active" && current.hostId === leftUserId) {
-            transferHost(current.roomId, leftUserId).then(refresh);
-          } else if (current.status === "active" && isHostRef.current) {
-            const player = current.teams
-              .flatMap((t) => t.players)
-              .find((p) => p.userId === leftUserId);
-            if (player) announceDisconnect(current.roomId, player.id);
+          } else if (current.status === "active") {
+            // Elect exactly one still-online seated player to report the
+            // disconnect (lowest userId), rather than gating on "current
+            // host" — that gate can never be satisfied when the departing
+            // player IS the host, since host_id still points at them until
+            // transferHost (below) runs.
+            const remainingOnlineIds = [...onlineIdsRef.current]
+              .filter((id) => id !== leftUserId)
+              .sort();
+            if (remainingOnlineIds[0] === userId) {
+              const player = current.teams
+                .flatMap((t) => t.players)
+                .find((p) => p.userId === leftUserId);
+              if (player) announceDisconnect(current.roomId, player.id);
+            }
+            if (current.hostId === leftUserId) {
+              transferHost(current.roomId, leftUserId).then(refresh);
+            }
           }
         }, DISCONNECT_GRACE_MS);
       },
       (joinedUserId) => {
+        // Self-reported: the reconnecting client announces its own presence
+        // coming back, so this doesn't depend on any other client (or host
+        // status) to observe it.
+        if (joinedUserId !== userId) return;
         const current = stateRef.current;
-        if (!current || current.status !== "active" || !isHostRef.current) return;
+        if (!current || current.status !== "active") return;
         const player = current.teams
           .flatMap((t) => t.players)
-          .find((p) => p.userId === joinedUserId);
+          .find((p) => p.userId === userId);
         if (player) announceReconnect(current.roomId, player.id);
       },
     );

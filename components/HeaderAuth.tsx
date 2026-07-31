@@ -42,11 +42,15 @@ export function HeaderAuth({ fullWidth = false }: { fullWidth?: boolean }) {
             : "flex items-center gap-3"
         }
       >
-        {!fullWidth && (
-          <span className="max-w-[10rem] truncate text-sm font-medium text-ink/80">
-            {(user.user_metadata?.username as string | undefined) ?? user.email}
-          </span>
-        )}
+        <span
+          className={
+            fullWidth
+              ? "truncate text-sm font-medium text-ink/80"
+              : "max-w-40 truncate text-sm font-medium text-ink/80"
+          }
+        >
+          {(user.user_metadata?.username as string | undefined) ?? user.email}
+        </span>
         <form action={logout} className={fullWidth ? "w-full" : undefined}>
           <Button
             type="submit"
