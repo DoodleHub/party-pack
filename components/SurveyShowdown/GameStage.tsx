@@ -244,33 +244,31 @@ export function GameStage({
         </div>
       </div>
 
-      {!stuck && (
-        <div className="relative mt-6 flex w-full max-w-md flex-col items-center gap-3">
-          {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
+      <div className="relative mt-6 flex w-full max-w-md flex-col items-center gap-3">
+        {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
 
-          <div className="flex w-full items-center gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
-              }}
-              placeholder="Type your answer…"
-              className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
-            />
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleSubmit}
-              disabled={!isMyTurn || submitting || !draft.trim()}
-            >
-              {submitting ? "Sending…" : "Submit"}
-            </Button>
-          </div>
+        <div className="flex w-full items-center gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSubmit();
+            }}
+            placeholder="Type your answer…"
+            className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+          />
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={handleSubmit}
+            disabled={!isMyTurn || submitting || !draft.trim()}
+          >
+            {submitting ? "Sending…" : "Submit"}
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
