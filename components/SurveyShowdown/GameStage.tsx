@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CheckIcon, CloseIcon } from "@/components/ui/Icon";
 import type { Answer } from "@/components/SurveyShowdown/types";
@@ -21,6 +21,7 @@ interface GameStageProps {
   onSubmitAnswer: (text: string) => Promise<SubmitAnswerResult | { error: string }>;
   stuck: boolean;
   allRevealed: boolean;
+  isLastRound: boolean;
   isHost: boolean;
   onRevealAll: () => Promise<{ error?: string } | void>;
   onNextRound: () => Promise<void>;
@@ -128,6 +129,7 @@ export function GameStage({
   onSubmitAnswer,
   stuck,
   allRevealed,
+  isLastRound,
   isHost,
   onRevealAll,
   onNextRound,
@@ -137,9 +139,19 @@ export function GameStage({
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
   const [feedbackKey, setFeedbackKey] = useState(0);
   const [resolving, setResolving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const wasFocusedRef = useRef(false);
 
   const remainingMs = useCountdown(turnEndsAt);
   const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+  useEffect(() => {
+    if (isMyTurn) inputRef.current?.focus();
+  }, [isMyTurn]);
+
+  useEffect(() => {
+    if (!submitting && wasFocusedRef.current) inputRef.current?.focus();
+  }, [submitting]);
 
   const slots: (Answer | undefined)[] = Array.from({ length: 8 }, (_, i) =>
     answers.find((a) => a.rank === i + 1),
@@ -149,7 +161,8 @@ export function GameStage({
 
   async function handleSubmit() {
     const text = draft.trim();
-    if (!text || submitting) return;
+    if (!text || submitting || !isMyTurn) return;
+    wasFocusedRef.current = document.activeElement === inputRef.current;
     setSubmitting(true);
     setDraft("");
     const result = await onSubmitAnswer(text);
@@ -187,13 +200,17 @@ export function GameStage({
               {resolving
                 ? "Working…"
                 : allRevealed
-                  ? "Next Round"
+                  ? isLastRound
+                    ? "See Results"
+                    : "Next Round"
                   : "Reveal All Answers"}
             </Button>
           ) : (
             <p className="text-sm text-white/60">
               {allRevealed
-                ? "Waiting for the host to move to the next round…"
+                ? isLastRound
+                  ? "Waiting for the host to end the game…"
+                  : "Waiting for the host to move to the next round…"
                 : "Waiting for the host to reveal the remaining answers…"}
             </p>
           )}
@@ -237,29 +254,28 @@ export function GameStage({
         <div className="relative mt-6 flex w-full max-w-md flex-col items-center gap-3">
           {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
 
-          {isMyTurn ? (
-            <div className="flex w-full items-center gap-2">
-              <input
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-                }}
-                placeholder="Type your answer…"
-                autoFocus
-                disabled={submitting}
-                className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
-              />
-              <Button variant="primary" size="lg" onClick={handleSubmit} disabled={submitting || !draft.trim()}>
-                {submitting ? "Sending…" : "Submit"}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-sm text-white/60">
-              Waiting for {activePlayerName ?? "the other player"} to answer…
-            </p>
-          )}
+          <div className="flex w-full items-center gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmit();
+              }}
+              placeholder="Type your answer…"
+              disabled={submitting}
+              className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleSubmit}
+              disabled={!isMyTurn || submitting || !draft.trim()}
+            >
+              {submitting ? "Sending…" : "Submit"}
+            </Button>
+          </div>
         </div>
       )}
     </div>

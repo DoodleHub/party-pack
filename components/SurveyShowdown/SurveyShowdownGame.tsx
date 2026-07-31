@@ -97,54 +97,62 @@ function CopyRoomLinkButton({ code }: { code: string }) {
   );
 }
 
-function GameOverScreen({ state }: { state: RoomState }) {
+function GameOverScreen({ state, senderId }: { state: RoomState; senderId: string }) {
   const ranked = [...state.teams].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
   const tied = ranked.length > 1 && ranked[0].score === ranked[1].score;
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md">
-      <TrophyIcon className="h-10 w-10 text-amber-400" />
-      <div>
-        <h1 className="text-3xl font-extrabold">Game Over</h1>
-        <p className="mt-2 text-white/70">
-          {tied ? "It's a tie!" : `${winner.name} wins!`}
-        </p>
-      </div>
-      <div className="flex w-full flex-col gap-3">
-        {ranked.map((team) => (
-          <div
-            key={team.id}
-            className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">{team.name}</span>
-              <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
-            </div>
-            <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
-              {[...team.players]
-                .sort((a, b) => b.points - a.points)
-                .map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex items-center justify-between text-sm text-white/70"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                        style={{ backgroundColor: avatarColor(player.name) }}
-                      >
-                        {initials(player.name)}
+    <div className="mx-auto flex w-full max-w-4xl flex-col items-start gap-6 lg:flex-row">
+      <div className="flex w-full flex-1 flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md">
+        <TrophyIcon className="h-10 w-10 text-amber-400" />
+        <div>
+          <h1 className="text-3xl font-extrabold">Game Over</h1>
+          <p className="mt-2 text-white/70">
+            {tied ? "It's a tie!" : `${winner.name} wins!`}
+          </p>
+        </div>
+        <div className="flex w-full flex-col gap-3">
+          {ranked.map((team) => (
+            <div
+              key={team.id}
+              className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{team.name}</span>
+                <span className="text-xl font-extrabold text-amber-400">{team.score}</span>
+              </div>
+              <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
+                {[...team.players]
+                  .sort((a, b) => b.points - a.points)
+                  .map((player) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between text-sm text-white/70"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                          style={{ backgroundColor: avatarColor(player.name) }}
+                        >
+                          {initials(player.name)}
+                        </span>
+                        {player.name}
                       </span>
-                      {player.name}
-                    </span>
-                    <span className="font-semibold text-white/90">{player.points}</span>
-                  </div>
-                ))}
+                      <span className="font-semibold text-white/90">{player.points}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      {state.enableChat && (
+        <div className="h-112 w-full shrink-0 overflow-hidden lg:w-80">
+          <ChatPanel roomId={state.roomId} senderId={senderId} />
+        </div>
+      )}
     </div>
   );
 }
@@ -486,7 +494,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
               onStartGame={handleStartGame}
             />
           ) : state.status === "ended" ? (
-            <GameOverScreen state={state} />
+            <GameOverScreen state={state} senderId={userId ?? "spectator"} />
           ) : (
             <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[280px_1fr_300px]">
               <TeamSidebar
@@ -507,6 +515,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
                 onSubmitAnswer={handleSubmitAnswer}
                 stuck={stuck}
                 allRevealed={allRevealed}
+                isLastRound={!!state && state.roundNumber >= state.totalRounds}
                 isHost={isHost}
                 onRevealAll={handleRevealAll}
                 onNextRound={handleNextRound}
