@@ -100,6 +100,65 @@ function AnswerFeedbackToast({
   );
 }
 
+interface AnswerInputBarProps {
+  isMyTurn: boolean;
+  onSubmitAnswer: (text: string) => Promise<SubmitAnswerResult | { error: string }>;
+}
+
+export function AnswerInputBar({ isMyTurn, onSubmitAnswer }: AnswerInputBarProps) {
+  const [draft, setDraft] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+  const [feedbackKey, setFeedbackKey] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isMyTurn) inputRef.current?.focus();
+  }, [isMyTurn]);
+
+  async function handleSubmit() {
+    const text = draft.trim();
+    if (!text || submitting || !isMyTurn) return;
+    setSubmitting(true);
+    setDraft("");
+    const result = await onSubmitAnswer(text);
+    setSubmitting(false);
+
+    if ("error" in result) return;
+    setFeedback(result.correct ? { correct: true, points: result.points ?? 0 } : { correct: false });
+    setFeedbackKey((k) => k + 1);
+    setTimeout(() => setFeedback(null), 2100);
+  }
+
+  return (
+    <div className="relative flex w-full max-w-md flex-col items-center gap-3">
+      {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
+
+      <div className="flex w-full items-center gap-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit();
+          }}
+          placeholder="Type your answer…"
+          className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+        />
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={handleSubmit}
+          disabled={!isMyTurn || submitting || !draft.trim()}
+        >
+          {submitting ? "Sending…" : "Submit"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function useCountdown(turnEndsAt: string | null) {
   const [remainingMs, setRemainingMs] = useState(0);
 
@@ -134,39 +193,16 @@ export function GameStage({
   onRevealAll,
   onNextRound,
 }: GameStageProps) {
-  const [draft, setDraft] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
-  const [feedbackKey, setFeedbackKey] = useState(0);
   const [resolving, setResolving] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const remainingMs = useCountdown(turnEndsAt);
   const remainingSeconds = Math.ceil(remainingMs / 1000);
-
-  useEffect(() => {
-    if (isMyTurn) inputRef.current?.focus();
-  }, [isMyTurn]);
 
   const slots: (Answer | undefined)[] = Array.from({ length: 8 }, (_, i) =>
     answers.find((a) => a.rank === i + 1),
   );
   const leftColumn = slots.slice(0, 4);
   const rightColumn = slots.slice(4, 8);
-
-  async function handleSubmit() {
-    const text = draft.trim();
-    if (!text || submitting || !isMyTurn) return;
-    setSubmitting(true);
-    setDraft("");
-    const result = await onSubmitAnswer(text);
-    setSubmitting(false);
-
-    if ("error" in result) return;
-    setFeedback(result.correct ? { correct: true, points: result.points ?? 0 } : { correct: false });
-    setFeedbackKey((k) => k + 1);
-    setTimeout(() => setFeedback(null), 2100);
-  }
 
   async function handleRevealAll() {
     setResolving(true);
@@ -244,30 +280,8 @@ export function GameStage({
         </div>
       </div>
 
-      <div className="relative mt-6 flex w-full max-w-md flex-col items-center gap-3">
-        {feedback && <AnswerFeedbackToast feedback={feedback} toastKey={feedbackKey} />}
-
-        <div className="flex w-full items-center gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-            }}
-            placeholder="Type your answer…"
-            className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
-          />
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={handleSubmit}
-            disabled={!isMyTurn || submitting || !draft.trim()}
-          >
-            {submitting ? "Sending…" : "Submit"}
-          </Button>
-        </div>
+      <div className="mt-6">
+        <AnswerInputBar isMyTurn={isMyTurn} onSubmitAnswer={onSubmitAnswer} />
       </div>
     </div>
   );

@@ -13,12 +13,13 @@ import {
   TrophyIcon,
   UsersIcon,
 } from "@/components/ui/Icon";
-import { GameStage } from "@/components/SurveyShowdown/GameStage";
+import { AnswerInputBar, GameStage } from "@/components/SurveyShowdown/GameStage";
 import { TeamSidebar, avatarColor, initials } from "@/components/SurveyShowdown/TeamSidebar";
 import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
 import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
 import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
+import { Switch } from "@/components/ui/Switch";
 import {
   advanceRound,
   announceDisconnect,
@@ -167,6 +168,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [tvMode, setTvMode] = useState(false);
 
   const stateRef = useRef<RoomState | null>(null);
   const onlineIdsRef = useRef<Set<string>>(new Set());
@@ -429,53 +431,65 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
       <div className="absolute inset-0 bg-black/25" />
 
       <div className="relative z-10 flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10">
-          <Link
-            href="/games/survey-showdown"
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md"
-          >
-            <ArrowRightIcon className="h-4 w-4 rotate-180" />
-            Back to Lobby
-          </Link>
+        {!tvMode && (
+          <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10">
+            <Link
+              href="/games/survey-showdown"
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md"
+            >
+              <ArrowRightIcon className="h-4 w-4 rotate-180" />
+              Back to Lobby
+            </Link>
 
-          <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md">
-            {state?.name && (
+            <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-black/40 px-5 py-3 backdrop-blur-md">
+              {state?.name && (
+                <div className="flex items-center gap-2">
+                  <p className="max-w-48 truncate text-sm font-semibold text-white">
+                    {state.name}
+                  </p>
+                </div>
+              )}
+              {state?.visibility === "private" && (
+                <LockIcon className="h-4 w-4 text-white/60" />
+              )}
               <div className="flex items-center gap-2">
-                <p className="max-w-48 truncate text-sm font-semibold text-white">
-                  {state.name}
-                </p>
+                <UsersIcon className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-white">{gameInfo.players}</p>
+                  <p className="text-xs text-white/60">Teams</p>
+                </div>
               </div>
-            )}
-            {state?.visibility === "private" && (
-              <LockIcon className="h-4 w-4 text-white/60" />
-            )}
-            <div className="flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-white">{gameInfo.players}</p>
-                <p className="text-xs text-white/60">Teams</p>
+              <div className="flex items-center gap-2">
+                <ClockIcon className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-white">15–20 min</p>
+                  <p className="text-xs text-white/60">Play time</p>
+                </div>
               </div>
+              <div className="flex items-center gap-2">
+                <TrophyIcon className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-white">{gameInfo.type}</p>
+                  <p className="text-xs text-white/60">Game type</p>
+                </div>
+              </div>
+              {state && <RoomCodeChip code={state.code} />}
+              {state && <CopyRoomLinkButton code={state.code} />}
+              {state?.status === "active" && (
+                <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md">
+                  <span className="text-sm font-semibold">TV Mode</span>
+                  <Switch checked={tvMode} onChange={setTvMode} label="TV Mode" />
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <ClockIcon className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-white">15–20 min</p>
-                <p className="text-xs text-white/60">Play time</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrophyIcon className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-white">{gameInfo.type}</p>
-                <p className="text-xs text-white/60">Game type</p>
-              </div>
-            </div>
-            {state && <RoomCodeChip code={state.code} />}
-            {state && <CopyRoomLinkButton code={state.code} />}
           </div>
-        </div>
+        )}
 
-        <div className="mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10">
+        <div
+          className={`mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10 ${
+            tvMode ? "pt-8" : ""
+          }`}
+        >
           {loading ? (
             <p className="mx-auto text-white/70">Loading game…</p>
           ) : !state ? (
@@ -495,6 +509,19 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
             />
           ) : state.status === "ended" ? (
             <GameOverScreen state={state} senderId={userId ?? "spectator"} />
+          ) : tvMode ? (
+            <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4">
+              <div className="flex items-center gap-2 self-end rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-white backdrop-blur-md">
+                <span className="text-sm font-semibold">TV Mode</span>
+                <Switch checked={tvMode} onChange={setTvMode} label="TV Mode" />
+              </div>
+              {state.enableChat && (
+                <div className="h-112 w-full shrink-0 overflow-hidden">
+                  <ChatPanel roomId={state.roomId} senderId={userId ?? "spectator"} />
+                </div>
+              )}
+              <AnswerInputBar isMyTurn={isMyTurn} onSubmitAnswer={handleSubmitAnswer} />
+            </div>
           ) : (
             <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[280px_1fr_300px]">
               <TeamSidebar
