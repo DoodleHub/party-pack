@@ -129,7 +129,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.roomId]);
 
-  // Detects players closing their tab/browser (not just clicking "Leave Table").
+  // Detects players closing their tab/browser (not just navigating away via "Leave Room").
   useEffect(() => {
     if (!state?.roomId || !userId) return;
     let firstSync = true;
@@ -238,6 +238,23 @@ export function KoupGame({ roomCode }: KoupGameProps) {
     !state.allowSpectators
   );
 
+  // Auto-seat a visiting user at the table once the room is loaded and
+  // unlocked, instead of requiring an explicit "Join Table" click.
+  const autoJoinPendingRef = useRef(false);
+
+  useEffect(() => {
+    if (!state || !userId) return;
+    if (state.status !== "waiting" || isPlayer) return;
+    if (locked || spectatorBlocked) return;
+    if (state.players.length >= state.maxPlayers) return;
+    if (autoJoinPendingRef.current) return;
+    autoJoinPendingRef.current = true;
+    joinRoom(state.roomId).then(() => {
+      autoJoinPendingRef.current = false;
+      refresh();
+    });
+  }, [state, userId, isPlayer, locked, spectatorBlocked, refresh]);
+
   async function handleVerifyPassword(password: string) {
     const ok = await verifyRoomPassword(roomCode, password);
     if (ok) setUnlocked(true);
@@ -249,12 +266,6 @@ export function KoupGame({ roomCode }: KoupGameProps) {
     const result = await joinRoom(state.roomId);
     await refresh();
     return result;
-  }
-
-  async function handleLeaveRoom() {
-    if (!state) return;
-    await leaveRoom(state.roomId);
-    await refresh();
   }
 
   async function handleStartGame() {
@@ -371,7 +382,6 @@ export function KoupGame({ roomCode }: KoupGameProps) {
               currentUserId={userId ?? ""}
               onlineUserIds={onlineUserIds}
               onJoinRoom={handleJoinRoom}
-              onLeaveRoom={handleLeaveRoom}
               onStartGame={handleStartGame}
             />
           ) : state.status === "ended" ? (

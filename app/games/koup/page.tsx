@@ -11,16 +11,12 @@ export default async function KoupLobbyPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const roomsQuery = supabase
+  const { data: rawRooms } = await supabase
     .from("koup_rooms")
     .select("id, code, name, status, visibility, max_players, host_id, created_at")
     .neq("status", "ended")
     .order("created_at", { ascending: false })
     .limit(30);
-
-  const { data: rawRooms } = user
-    ? await roomsQuery.or(`visibility.eq.public,host_id.eq.${user.id}`)
-    : await roomsQuery.eq("visibility", "public");
 
   const rooms = rawRooms ?? [];
   const roomIds = rooms.map((r) => r.id);

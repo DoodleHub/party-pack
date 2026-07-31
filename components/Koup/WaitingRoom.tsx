@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ChatIcon, CrownIcon, GlobeIcon, LockIcon, UsersIcon } from "@/components/ui/Icon";
 import { avatarColor, initials } from "@/lib/avatar";
+import { ChatPanel } from "@/components/Koup/ChatPanel";
 import type { RoomState } from "@/components/Koup/types";
 
 interface WaitingRoomProps {
@@ -12,7 +13,6 @@ interface WaitingRoomProps {
   currentUserId: string;
   onlineUserIds: Set<string>;
   onJoinRoom: () => Promise<{ error?: string }>;
-  onLeaveRoom: () => Promise<void>;
   onStartGame: () => Promise<{ error?: string }>;
 }
 
@@ -21,7 +21,6 @@ export function WaitingRoom({
   currentUserId,
   onlineUserIds,
   onJoinRoom,
-  onLeaveRoom,
   onStartGame,
 }: WaitingRoomProps) {
   const [pending, setPending] = useState(false);
@@ -38,13 +37,6 @@ export function WaitingRoom({
     const result = await onJoinRoom();
     setPending(false);
     if (result.error) setError(result.error);
-  }
-
-  async function handleLeave() {
-    setPending(true);
-    setError(null);
-    await onLeaveRoom();
-    setPending(false);
   }
 
   async function handleStart() {
@@ -122,16 +114,7 @@ export function WaitingRoom({
           )}
         </ul>
 
-        {isSeated ? (
-          <Button
-            variant="ghost"
-            className="mt-4 w-full border-white/20 text-white hover:bg-white/10"
-            onClick={handleLeave}
-            disabled={pending}
-          >
-            Leave Table
-          </Button>
-        ) : (
+        {!isSeated && (
           <Button
             variant="primary"
             className="mt-4 w-full"
@@ -142,6 +125,17 @@ export function WaitingRoom({
           </Button>
         )}
       </div>
+
+      {room.enableChat && (
+        <div className="flex h-80 flex-col rounded-2xl border border-white/10 bg-black/50 p-4 text-white backdrop-blur-md">
+          <h2 className="mb-3 border-b border-white/10 pb-3 text-sm font-semibold text-white/70">
+            Chat
+          </h2>
+          <div className="min-h-0 flex-1">
+            <ChatPanel roomId={room.roomId} senderId={currentUserId} />
+          </div>
+        </div>
+      )}
 
       {error && (
         <p className="mx-auto rounded-xl bg-red-500/20 px-4 py-2 text-center text-sm font-medium text-red-200">
