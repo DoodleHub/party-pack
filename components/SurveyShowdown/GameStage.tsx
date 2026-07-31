@@ -140,7 +140,6 @@ export function GameStage({
   const [feedbackKey, setFeedbackKey] = useState(0);
   const [resolving, setResolving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const wasFocusedRef = useRef(false);
 
   const remainingMs = useCountdown(turnEndsAt);
   const remainingSeconds = Math.ceil(remainingMs / 1000);
@@ -148,10 +147,6 @@ export function GameStage({
   useEffect(() => {
     if (isMyTurn) inputRef.current?.focus();
   }, [isMyTurn]);
-
-  useEffect(() => {
-    if (!submitting && wasFocusedRef.current) inputRef.current?.focus();
-  }, [submitting]);
 
   const slots: (Answer | undefined)[] = Array.from({ length: 8 }, (_, i) =>
     answers.find((a) => a.rank === i + 1),
@@ -162,7 +157,6 @@ export function GameStage({
   async function handleSubmit() {
     const text = draft.trim();
     if (!text || submitting || !isMyTurn) return;
-    wasFocusedRef.current = document.activeElement === inputRef.current;
     setSubmitting(true);
     setDraft("");
     const result = await onSubmitAnswer(text);
@@ -264,8 +258,7 @@ export function GameStage({
                 if (e.key === "Enter") handleSubmit();
               }}
               placeholder="Type your answer…"
-              disabled={submitting}
-              className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-12 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 text-base text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
             />
             <Button
               variant="primary"
