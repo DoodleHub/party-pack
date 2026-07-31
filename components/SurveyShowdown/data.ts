@@ -47,7 +47,7 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
     currentAnswers = (answers ?? []).map((a) => ({
       id: a.id,
       text: a.text,
-      points: a.points,
+      points: a.points * currentRound.multiplier,
       rank: a.rank,
       revealed: revealedIds.has(a.id),
     }));
