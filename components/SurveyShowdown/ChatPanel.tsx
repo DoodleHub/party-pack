@@ -14,7 +14,7 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,12 +33,20 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
     };
   }, [roomId]);
 
-  // Runs synchronously after the new message is painted into the (fixed-height,
-  // scrollable) list, so the scroll jump happens before the user sees a flash
-  // of the list stuck at its old position.
+  // Only auto-scroll the chat list itself (never scrollIntoView, which walks up
+  // and yanks the whole page) and only when the user was already at the bottom,
+  // so reading older messages isn't interrupted by new ones arriving.
   useLayoutEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    const list = listRef.current;
+    if (list && stickToBottomRef.current) {
+      list.scrollTop = list.scrollHeight;
+    }
   }, [messages]);
+
+  function handleListScroll(e: React.UIEvent<HTMLDivElement>) {
+    const list = e.currentTarget;
+    stickToBottomRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < 24;
+  }
 
   async function handleSend() {
     const text = draft.trim();
@@ -54,7 +62,11 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
         <h3 className="text-sm font-semibold">Chat</h3>
       </div>
 
-      <div ref={listRef} className="mt-3 flex-1 space-y-2 overflow-y-auto pr-1 text-sm">
+      <div
+        ref={listRef}
+        onScroll={handleListScroll}
+        className="mt-3 flex-1 space-y-2 overflow-y-auto pr-1 text-sm"
+      >
         {messages.length === 0 ? (
           <p className="text-white/40">No messages yet.</p>
         ) : (
@@ -75,7 +87,6 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
             ),
           )
         )}
-        <div ref={bottomRef} />
       </div>
 
       <div className="mt-3 flex items-center gap-2">

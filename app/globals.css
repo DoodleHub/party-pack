@@ -72,6 +72,19 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* iOS Safari auto-zooms the viewport when focusing a text field whose
+   computed font-size is under 16px, and sometimes fails to zoom back out
+   once the keyboard is dismissed. Below the sm breakpoint, force every
+   form field to 16px (visually overriding text-sm etc.) so the zoom never
+   triggers in the first place, regardless of the Tailwind size class used. */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* Survey Showdown answer-feedback toast: pop in, hold, float away.
    Runs once per mount so the toast never reflows surrounding layout. */
 @keyframes answer-toast {
