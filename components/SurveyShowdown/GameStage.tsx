@@ -31,14 +31,14 @@ function AnswerRow({ rank, answer }: { rank: number; answer: Answer | undefined 
   const revealed = answer?.revealed ?? false;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-white/5 px-3 py-2.5 text-left sm:gap-4 sm:px-5 sm:py-3.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white sm:h-9 sm:w-9 sm:text-base">
+    <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-white/5 px-3 py-2.5 text-left sm:gap-4 sm:px-5 sm:py-3.5 xl:gap-2 xl:px-3 xl:py-2 2xl:gap-4 2xl:px-5 2xl:py-3.5">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white sm:h-9 sm:w-9 sm:text-base xl:h-7 xl:w-7 xl:text-xs 2xl:h-9 2xl:w-9 2xl:text-base">
         {rank}
       </span>
-      <span className="min-w-0 flex-1 text-base leading-tight font-semibold text-white sm:text-xl">
+      <span className="min-w-0 flex-1 text-base leading-tight font-semibold text-white sm:text-xl xl:text-base 2xl:text-xl">
         {revealed ? answer!.text : ""}
       </span>
-      <span className="shrink-0 text-lg font-bold text-white sm:text-2xl">
+      <span className="shrink-0 text-lg font-bold text-white sm:text-2xl xl:text-lg 2xl:text-2xl">
         {revealed ? answer!.points : 0}
       </span>
     </div>
@@ -261,12 +261,12 @@ export function GameStage({
         </div>
       )}
 
-      <div className="relative mt-4 w-full rounded-2xl border-2 border-amber-400/60 bg-[#080f28]/90 p-5 shadow-[inset_0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-sm sm:p-8">
-        <h2 className="text-center text-2xl font-bold text-white sm:text-4xl">
+      <div className="relative mt-4 w-full rounded-2xl border-2 border-amber-400/60 bg-[#080f28]/90 p-5 shadow-[inset_0_0_40px_rgba(0,0,0,0.4)] backdrop-blur-sm sm:p-8 xl:p-6 2xl:p-8">
+        <h2 className="text-center text-2xl font-bold text-white sm:text-4xl xl:text-3xl 2xl:text-4xl">
           {prompt ?? "Loading question…"}
         </h2>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 2xl:grid-cols-2 2xl:gap-x-6">
+        <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-x-4 xl:gap-y-3 2xl:gap-x-6 2xl:gap-y-4">
           <div className="flex flex-col gap-4">
             {leftColumn.map((answer, i) => (
               <AnswerRow key={i} rank={i + 1} answer={answer} />

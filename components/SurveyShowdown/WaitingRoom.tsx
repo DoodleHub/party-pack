@@ -64,6 +64,26 @@ export function WaitingRoom({
     if (result.error) setError(result.error);
   }
 
+  const startControls = isHost ? (
+    <div className="flex flex-col items-center gap-2">
+      <Button
+        variant="primary"
+        size="lg"
+        onClick={handleStart}
+        disabled={pending || !eachTeamHasPlayer}
+      >
+        Start Game
+      </Button>
+      {!eachTeamHasPlayer && (
+        <p className="text-xs text-white/50">Each team needs at least one player to start.</p>
+      )}
+    </div>
+  ) : (
+    <p className="text-center text-xs text-white/50">
+      Waiting for the host to start the game…
+    </p>
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-black/50 p-6 text-center text-white backdrop-blur-md">
@@ -93,76 +113,77 @@ export function WaitingRoom({
         </p>
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div
-          ref={teamsRef}
-          className="grid min-w-0 flex-1 items-start gap-6 lg:grid-cols-[1fr_1fr]"
-        >
-          {room.teams.map((team) => {
-            const style = TEAM_STYLES[team.slot];
-            const onThisTeam = myTeamSlot === team.slot;
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div ref={teamsRef} className="flex min-w-0 flex-1 flex-col justify-between gap-6">
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_1fr]">
+            {room.teams.map((team) => {
+              const style = TEAM_STYLES[team.slot];
+              const onThisTeam = myTeamSlot === team.slot;
 
-            return (
-              <div
-                key={team.id}
-                className="rounded-2xl border border-white/10 bg-black/50 p-5 text-white backdrop-blur-md"
-              >
-                <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white ${style.badge}`}
+              return (
+                <div
+                  key={team.id}
+                  className="rounded-2xl border border-white/10 bg-black/50 p-5 text-white backdrop-blur-md"
                 >
-                  {style.label}
-                </span>
-                <ul className="mt-4 flex min-h-16 flex-col gap-2">
-                  {team.players.length === 0 ? (
-                    <li className="text-sm text-white/40">No players yet</li>
-                  ) : (
-                    team.players.map((p) => {
-                      const online = !!p.userId && onlineUserIds.has(p.userId);
-                      return (
-                        <li key={p.id} className="flex items-center gap-2 text-sm">
-                          <span className="relative shrink-0">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs font-bold">
-                              {p.name.slice(0, 2).toUpperCase()}
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white ${style.badge}`}
+                  >
+                    {style.label}
+                  </span>
+                  <ul className="mt-4 flex min-h-16 flex-col gap-2">
+                    {team.players.length === 0 ? (
+                      <li className="text-sm text-white/40">No players yet</li>
+                    ) : (
+                      team.players.map((p) => {
+                        const online = !!p.userId && onlineUserIds.has(p.userId);
+                        return (
+                          <li key={p.id} className="flex items-center gap-2 text-sm">
+                            <span className="relative shrink-0">
+                              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs font-bold">
+                                {p.name.slice(0, 2).toUpperCase()}
+                              </span>
+                              <span
+                                title={online ? "Online" : "Offline"}
+                                className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 ${
+                                  online ? "bg-emerald-400" : "bg-zinc-400"
+                                }`}
+                              />
                             </span>
-                            <span
-                              title={online ? "Online" : "Offline"}
-                              className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-black/50 ${
-                                online ? "bg-emerald-400" : "bg-zinc-400"
-                              }`}
-                            />
-                          </span>
-                          {p.name}
-                          {p.userId === room.hostId && (
-                            <CrownIcon className="h-3.5 w-3.5 text-amber-400" />
-                          )}
-                        </li>
-                      );
-                    })
-                  )}
-                </ul>
+                            {p.name}
+                            {p.userId === room.hostId && (
+                              <CrownIcon className="h-3.5 w-3.5 text-amber-400" />
+                            )}
+                          </li>
+                        );
+                      })
+                    )}
+                  </ul>
 
-                {onThisTeam ? (
-                  <Button
-                    variant="ghost"
-                    className="mt-4 w-full border-white/20 text-white hover:bg-white/10"
-                    onClick={handleLeave}
-                    disabled={pending}
-                  >
-                    Leave Team
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    className="mt-4 w-full"
-                    onClick={() => handleJoin(team.slot)}
-                    disabled={pending || (isFull && myTeamSlot === undefined)}
-                  >
-                    Join {style.label}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
+                  {onThisTeam ? (
+                    <Button
+                      variant="ghost"
+                      className="mt-4 w-full border-white/20 text-white hover:bg-white/10"
+                      onClick={handleLeave}
+                      disabled={pending}
+                    >
+                      Leave Team
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      className="mt-4 w-full"
+                      onClick={() => handleJoin(team.slot)}
+                      disabled={pending || (isFull && myTeamSlot === undefined)}
+                    >
+                      Join {style.label}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden lg:flex lg:justify-center">{startControls}</div>
         </div>
 
         {room.enableChat && (
@@ -181,25 +202,7 @@ export function WaitingRoom({
         </p>
       )}
 
-      {isHost ? (
-        <div className="mx-auto flex flex-col items-center gap-2">
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={handleStart}
-            disabled={pending || !eachTeamHasPlayer}
-          >
-            Start Game
-          </Button>
-          {!eachTeamHasPlayer && (
-            <p className="text-xs text-white/50">Each team needs at least one player to start.</p>
-          )}
-        </div>
-      ) : (
-        <p className="text-center text-xs text-white/50">
-          Waiting for the host to start the game…
-        </p>
-      )}
+      <div className="mx-auto lg:hidden">{startControls}</div>
     </div>
   );
 }

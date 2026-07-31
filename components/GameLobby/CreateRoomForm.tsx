@@ -181,7 +181,7 @@ export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
                   onClick={() => setVisibility("public")}
                   className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
                     visibility === "public"
-                      ? "border-primary bg-primary-tint/40 ring-1 ring-primary"
+                      ? "border-primary bg-[#ede9fe]/40 ring-1 ring-primary"
                       : "border-card-foreground/10 hover:bg-card-hover"
                   }`}
                 >
@@ -196,7 +196,7 @@ export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
                   onClick={() => setVisibility("private")}
                   className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
                     visibility === "private"
-                      ? "border-primary bg-primary-tint/40 ring-1 ring-primary"
+                      ? "border-primary bg-[#ede9fe]/40 ring-1 ring-primary"
                       : "border-card-foreground/10 hover:bg-card-hover"
                   }`}
                 >
@@ -310,7 +310,7 @@ export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
 
             <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
               <Link href={`/games/${game.slug}`}>
-                <Button variant="ghost" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </Link>
@@ -387,11 +387,11 @@ export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
             <div className="flex flex-col gap-3 rounded-2xl bg-amber-50 p-6">
               <div className="flex items-center gap-2">
                 <LightbulbIcon className="h-5 w-5 text-amber-500" />
-                <h3 className="font-semibold text-ink">Tips for a great game</h3>
+                <h3 className="font-semibold text-card-foreground">Tips for a great game</h3>
               </div>
               <ul className="flex flex-col gap-2">
                 {TIPS.map((tip) => (
-                  <li key={tip} className="flex items-start gap-2 text-sm text-muted">
+                  <li key={tip} className="flex items-start gap-2 text-sm text-card-muted">
                     <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                       <CheckIcon className="h-2.5 w-2.5" />
                     </span>
