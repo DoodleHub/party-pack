@@ -283,20 +283,27 @@ export const postCountdownTick = (roomId: string, secondsLeft: number) =>
     p_seconds_left: secondsLeft,
   });
 
-export const announceDisconnect = (roomId: string, playerId: string) =>
-  supabase.rpc("survey_showdown_announce_disconnect", {
+// These must actually await the RPC (not just return the builder): postgrest-js
+// only sends the underlying fetch once the builder is awaited/`.then()`'d, and
+// every call site below fires these fire-and-forget without consuming the
+// result themselves.
+export async function announceDisconnect(roomId: string, playerId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_announce_disconnect", {
     p_room_id: roomId,
     p_player_id: playerId,
   });
+}
 
-export const announceReconnect = (roomId: string, playerId: string) =>
-  supabase.rpc("survey_showdown_announce_reconnect", {
+export async function announceReconnect(roomId: string, playerId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_announce_reconnect", {
     p_room_id: roomId,
     p_player_id: playerId,
   });
+}
 
-export const announceLeftGame = (roomId: string) =>
-  supabase.rpc("survey_showdown_announce_left_game", { p_room_id: roomId });
+export async function announceLeftGame(roomId: string): Promise<void> {
+  await supabase.rpc("survey_showdown_announce_left_game", { p_room_id: roomId });
+}
 
 export async function getCurrentUser() {
   const { data } = await supabase.auth.getUser();
