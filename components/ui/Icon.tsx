@@ -566,6 +566,34 @@ export function MaskIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function MoonIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SunIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12 2.5v2.25M12 19.25v2.25M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function SpinnerIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>

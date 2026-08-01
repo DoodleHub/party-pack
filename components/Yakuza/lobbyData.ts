@@ -1,5 +1,5 @@
 import yakuzaImage from "@/public/games/yakuza.png";
-import type { GameLobbyInfo, LobbyRoom } from "@/components/GameLobby/types";
+import type { GameLobbyInfo } from "@/components/GameLobby/types";
 
 export const yakuzaLobbyInfo: GameLobbyInfo = {
   slug: "yakuza",
@@ -7,79 +7,13 @@ export const yakuzaLobbyInfo: GameLobbyInfo = {
   cover: yakuzaImage,
   players: "6–12 Players",
   type: "Deduction",
-  description: "Find the yakuza hiding among you—before it's too late.",
+  description: "Find the Mafia hiding among you—before they take over the town.",
   gameTime: "15–20 min",
   difficulty: 3,
   howToPlay: [
-    "Players are secretly given roles.",
-    "Work together to discuss and figure out who the yakuza is.",
-    "Vote to eliminate a player.",
-    "Eliminate the yakuza to win!",
+    "Everyone is secretly dealt a role: Mafia, Detective, Doctor, or Citizen.",
+    "Each night, the Mafia secretly choose a target, the Doctor protects someone, and the Detective investigates a player.",
+    "Each day, discuss what happened, accuse, defend — then vote to eliminate one player.",
+    "Town wins by eliminating every Mafia member. Mafia wins once they equal or outnumber the Town.",
   ],
 };
-
-export const yakuzaRooms: LobbyRoom[] = [
-  {
-    code: "T4B7K",
-    name: "The Boys",
-    host: "Alex",
-    playerNames: ["Alex", "Marcus", "Jordan", "Leo", "Diego", "Sam", "Chris", "Nate"],
-    maxPlayers: 10,
-    status: "waiting",
-    visibility: "public",
-    createdAt: "2026-07-28T19:10:00Z",
-  },
-  {
-    code: "F9M2P",
-    name: "Friday Night Mafia",
-    host: "Sarah",
-    playerNames: ["Sarah", "Elena", "Priya", "Noah", "Grace", "Omar"],
-    maxPlayers: 8,
-    status: "in-progress",
-    visibility: "public",
-    createdAt: "2026-07-28T18:45:00Z",
-  },
-  {
-    code: "R1L5Q",
-    name: "Family Reunion",
-    host: "Mike",
-    playerNames: [
-      "Mike",
-      "Dana",
-      "Carlos",
-      "Ruth",
-      "Ben",
-      "Wyatt",
-      "Ivy",
-      "Owen",
-      "Faye",
-      "Miles",
-      "Tessa",
-      "Jude",
-    ],
-    maxPlayers: 12,
-    status: "full",
-    visibility: "public",
-    createdAt: "2026-07-28T18:20:00Z",
-  },
-  {
-    code: "H8D3V",
-    name: "Late Night Crew",
-    host: "Jess",
-    playerNames: ["Jess", "Marcus", "Tara", "Wes"],
-    maxPlayers: 6,
-    status: "starting-soon",
-    visibility: "public",
-    createdAt: "2026-07-28T19:25:00Z",
-  },
-  {
-    code: "D6C9N",
-    name: "Detective Club",
-    host: "Tom",
-    playerNames: ["Tom", "Priya"],
-    maxPlayers: 10,
-    status: "waiting",
-    visibility: "public",
-    createdAt: "2026-07-28T17:50:00Z",
-  },
-];

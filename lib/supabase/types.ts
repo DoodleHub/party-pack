@@ -620,6 +620,369 @@ export type Database = {
           },
         ]
       }
+      yakuza_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          room_id: string
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          room_id: string
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          room_id?: string
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_investigations: {
+        Row: {
+          created_at: string
+          detective_player_id: string
+          id: string
+          result: string
+          room_id: string
+          round_number: number
+          target_player_id: string
+        }
+        Insert: {
+          created_at?: string
+          detective_player_id: string
+          id?: string
+          result: string
+          room_id: string
+          round_number: number
+          target_player_id: string
+        }
+        Update: {
+          created_at?: string
+          detective_player_id?: string
+          id?: string
+          result?: string
+          room_id?: string
+          round_number?: number
+          target_player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_investigations_detective_player_id_fkey"
+            columns: ["detective_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_investigations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_investigations_target_player_id_fkey"
+            columns: ["target_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_log_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          room_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_log_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_night_actions: {
+        Row: {
+          actor_player_id: string | null
+          id: string
+          role: string
+          room_id: string
+          round_number: number
+          target_player_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actor_player_id?: string | null
+          id?: string
+          role: string
+          room_id: string
+          round_number: number
+          target_player_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actor_player_id?: string | null
+          id?: string
+          role?: string
+          room_id?: string
+          round_number?: number
+          target_player_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_night_actions_actor_player_id_fkey"
+            columns: ["actor_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_night_actions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_night_actions_target_player_id_fkey"
+            columns: ["target_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_players: {
+        Row: {
+          alive: boolean
+          created_at: string
+          id: string
+          name: string
+          room_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          alive?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          room_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          alive?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          room_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_roles: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string
+          revealed: boolean
+          role: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id: string
+          revealed?: boolean
+          role: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string
+          revealed?: boolean
+          role?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_roles_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_roles_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yakuza_rooms: {
+        Row: {
+          allow_spectators: boolean
+          code: string
+          created_at: string
+          enable_chat: boolean
+          host_id: string | null
+          id: string
+          max_players: number
+          name: string
+          night_step: string | null
+          password_hash: string | null
+          phase: string | null
+          phase_deadline: string | null
+          round_number: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          visibility: string
+          winner: string | null
+        }
+        Insert: {
+          allow_spectators?: boolean
+          code: string
+          created_at?: string
+          enable_chat?: boolean
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          night_step?: string | null
+          password_hash?: string | null
+          phase?: string | null
+          phase_deadline?: string | null
+          round_number?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          visibility?: string
+          winner?: string | null
+        }
+        Update: {
+          allow_spectators?: boolean
+          code?: string
+          created_at?: string
+          enable_chat?: boolean
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          night_step?: string | null
+          password_hash?: string | null
+          phase?: string | null
+          phase_deadline?: string | null
+          round_number?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          visibility?: string
+          winner?: string | null
+        }
+        Relationships: []
+      }
+      yakuza_votes: {
+        Row: {
+          created_at: string
+          id: string
+          room_id: string
+          round_number: number
+          target_player_id: string
+          voter_player_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          room_id: string
+          round_number: number
+          target_player_id: string
+          voter_player_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          room_id?: string
+          round_number?: number
+          target_player_id?: string
+          voter_player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yakuza_votes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_votes_target_player_id_fkey"
+            columns: ["target_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yakuza_votes_voter_player_id_fkey"
+            columns: ["voter_player_id"]
+            isOneToOne: false
+            referencedRelation: "yakuza_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -855,6 +1218,85 @@ export type Database = {
         Returns: undefined
       }
       survey_showdown_verify_password: {
+        Args: { p_code: string; p_password: string }
+        Returns: boolean
+      }
+      yakuza_announce_disconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_announce_left_game: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_announce_reconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_check_and_apply_winner: {
+        Args: { p_room_id: string }
+        Returns: boolean
+      }
+      yakuza_claim_host: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_create_room: {
+        Args: {
+          p_allow_spectators: boolean
+          p_enable_chat: boolean
+          p_max_players: number
+          p_name: string
+          p_password: string
+          p_visibility: string
+        }
+        Returns: string
+      }
+      yakuza_do_resolve_night: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_do_resolve_vote: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_do_start_voting: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_expire_phase: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_join_room: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_leave_room: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_post_log_event: {
+        Args: { p_kind: string; p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      yakuza_reassign_or_delete_room: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_remove_player: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_resolve_night: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_resolve_vote: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_send_chat_message: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      yakuza_start_game: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_start_voting: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_submit_night_action: {
+        Args: { p_room_id: string; p_target_player_id: string }
+        Returns: undefined
+      }
+      yakuza_submit_vote: {
+        Args: { p_room_id: string; p_target_player_id: string }
+        Returns: undefined
+      }
+      yakuza_transfer_host: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      yakuza_verify_password: {
         Args: { p_code: string; p_password: string }
         Returns: boolean
       }
