@@ -3,6 +3,10 @@ import { GameCard } from "@/components/GameCard";
 import { ArrowRightIcon } from "@/components/ui/Icon";
 import { games } from "@/lib/games";
 
+// Codenames is still a real, playable game listed on /games — it's just not
+// promoted in this home page teaser section.
+const featuredGames = games.filter((game) => game.slug !== "codenames");
+
 export function FeaturedGames() {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pb-24 sm:px-10">
@@ -18,7 +22,7 @@ export function FeaturedGames() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {games.map((game) => (
+        {featuredGames.map((game) => (
           <GameCard key={game.slug} {...game} />
         ))}
       </div>
