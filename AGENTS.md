@@ -26,11 +26,53 @@ code, sharing one auth and Supabase setup.
   `app/games/<slug>/room/[code]/page.tsx` (a room), plus a
   `components/<Game>/` folder with a `lobbyData.ts` and (once built out) a
   `data.ts` for room/game state.
-- **Survey Showdown is the only fully-built game** — real rooms, teams,
-  turns, Realtime chat/presence, all backed by Postgres RPCs. Yakuza and
-  Koup currently only have lobby UI wired to static mock data
-  (`lobbyData.ts`); there's no room/game backend for them yet. Don't assume
-  they follow the same DB patterns until they're actually built out.
+- **Survey Showdown and Koup are fully-built games** — real rooms, players,
+  turns, Realtime chat/presence, all backed by Postgres RPCs. **Yakuza is
+  still lobby-only**, wired to static mock data (`lobbyData.ts`) with no
+  room/game backend yet. Don't assume Yakuza follows the same DB patterns
+  until it's actually built out.
+- Survey Showdown and Koup share the same *client-side* architecture (see
+  below) but have fully independent DB schemas (`survey_showdown_*` vs
+  `koup_*` tables/RPCs, one Postgres function per game action). Don't assume
+  a column or RPC name carries over between the two games — check
+  `list_tables` / the function body for the game you're actually touching.
+
+## Client-side game architecture (Survey Showdown & Koup — reuse this shape for future games)
+
+- `app/games/<slug>/room/[code]/page.tsx` is a thin wrapper that renders
+  `<XGame roomCode={code} />` — practically no logic of its own.
+- `components/<Game>/<Game>Game.tsx` is the single stateful orchestrator: it
+  owns the `RoomState` (`useState`), runs the Realtime subscription,
+  presence tracking, and disconnect/leave handling, and passes plain props
+  + callbacks down to presentational children (`WaitingRoom`,
+  `StatusPanel`/`GameStage`, sidebars, log/chat panels, …). Children hold no
+  server state themselves — they call the callbacks, which call `data.ts`
+  functions and then re-`refresh()`.
+- **State is always refetched whole, never patched incrementally.** Every
+  mutation (`declareAction`, `submitAnswer`, …) and every Realtime
+  `postgres_changes` event ends up calling the same `fetchRoomState(...)` /
+  `refresh()` that re-reads the entire room from Postgres and replaces
+  `state` wholesale — see `refresh` + `subscribeToRoom(roomId, refresh)` in
+  `KoupGame.tsx` / `SurveyShowdownGame.tsx`. There's no optimistic UI and no
+  partial-state merging; a new mutation should follow the same
+  call-RPC-then-`refresh()` shape rather than hand-patching `state` locally.
+- `components/<Game>/data.ts` is the only place that touches
+  `supabase.rpc(...)` / `.from(...)`. It maps DB snake_case rows to the
+  camelCase shapes in `types.ts` (see `fetchRoomState` in either game's
+  `data.ts`) and exposes one `async function` wrapper per RPC — see the lazy
+  RPC rule further down for why these must always be `async function`, never
+  arrow consts.
+- `components/<Game>/types.ts` defines the client-side `RoomState` shape
+  that `data.ts` maps into and every component consumes — treat it as the
+  contract between the DB layer and the UI, not as a mirror of the DB
+  schema.
+- Server-authoritative timers (turn timers, challenge/block response
+  windows) are exposed as a `response_deadline` timestamp column. Whichever
+  client happens to have the room open sets a local `setTimeout` past that
+  deadline and calls an idempotent "expire" RPC (`expireResponse` in Koup,
+  `expireTurn` in Survey Showdown) — see the `useEffect` keyed on
+  `state.responseDeadline` in `KoupGame.tsx`. The RPC has to be safe to call
+  from multiple racing clients since more than one may be watching.
 
 ## Auth
 
@@ -72,26 +114,82 @@ code, sharing one auth and Supabase setup.
   server-side validation, check the Postgres function — it's probably
   there, not in the TS layer.
 
-## Realtime / presence patterns (established in Survey Showdown; reuse for future games)
+## Realtime / presence patterns (established in Survey Showdown, confirmed in Koup — reuse for future games)
 
 - Player online/offline detection uses a Supabase Realtime **Presence**
   channel per room (`room-presence-${roomId}`), keyed by `userId` so
   multiple tabs from one user count as one online player.
-- A grace period (`DISCONNECT_GRACE_MS`, currently 8s in
-  `SurveyShowdownGame.tsx`) absorbs brief reconnects/refreshes before a
-  presence "leave" is treated as a real departure — check
-  `onlineIdsRef.current` again once the timer fires.
+- A grace period (`DISCONNECT_GRACE_MS`, currently 8s in both
+  `SurveyShowdownGame.tsx` and `KoupGame.tsx`) absorbs brief
+  reconnects/refreshes before a presence "leave" is treated as a real
+  departure — check `onlineIdsRef.current` again once the timer fires.
 - There are **two distinct "player left" code paths** that both need
   handling, not just one: (1) passive detection via the presence channel's
   `leave` event (tab closed/crashed/network dropped), and (2) an explicit
   `useEffect` unmount-cleanup for in-app navigation away (e.g. "Back to
-  Lobby"). They fire different combinations of RPCs — see
-  `SurveyShowdownGame.tsx` around the presence subscription and the
+  Lobby"/"Leave Room"). They fire different combinations of RPCs — see
+  either game's `Game.tsx` around the presence subscription and the
   unmount-cleanup effect.
 - Bot/system messages (team joins, guesses, host transfers, disconnects,
   round announcements, etc.) all funnel through one Postgres helper per
-  game (`survey_showdown_post_system_message`), which inserts into the
-  messages table with `user_id = null, name = 'Game'`.
+  game (`survey_showdown_post_system_message`, `koup_log_events` inserts),
+  which inserts into a log/messages table with `user_id = null`.
+- **Koup adds one variation worth knowing**: while `status === "waiting"`
+  (the pre-game table), a presence `leave` triggers an **immediate** kick
+  (`removePlayer`) instead of waiting out `DISCONNECT_GRACE_MS` — there's no
+  game state to protect yet and rejoining is instant (see auto-join below),
+  so there's no reason to let an empty seat linger. The grace period only
+  kicks in once `status === "active"`. See the `onLeave` callback in
+  `KoupGame.tsx`.
+- **Koup also auto-seats** a visiting authenticated user into an open,
+  unlocked, non-full `waiting` room instead of requiring an explicit "Join
+  Table" click — see the `autoJoinPendingRef` effect in `KoupGame.tsx`.
+  Survey Showdown requires an explicit team-join action instead; don't
+  assume auto-join is the shared default for a new game.
+
+## Koup — Coup-clone rules & state machine
+
+Koup implements the bluffing game *Coup* (5 characters: Duke, Assassin,
+Captain, Ambassador, Contessa). If you're not already familiar with Coup,
+read `components/Koup/GameRulesModal.tsx` and `components/Koup/characters.tsx`
+(`ACTION_META`/`CHARACTER_META`) first — they're the client-side source of
+truth for what each action/character does and are referenced throughout the
+UI components.
+
+- **The turn structure is a server-driven state machine**, exposed to the
+  client as a single `phase` column on `koup_rooms` (`Phase` in
+  `components/Koup/types.ts`): `awaiting_action` → `awaiting_response`
+  (someone declared a challengeable/blockable action) →
+  `awaiting_block_challenge` (someone blocked it) → either
+  `awaiting_exchange_select` (Ambassador) or `awaiting_influence_loss`
+  (someone must reveal a card) → back to `awaiting_action`.
+  `components/Koup/StatusPanel.tsx` is one large `if (state.phase === ...)`
+  switch rendering the right UI per phase — it's the first place to check
+  when a Koup action isn't rendering what you'd expect.
+- Tables: `koup_rooms`, `koup_players`, `koup_cards` (one row per Influence
+  card, with a `revealed` flag), `koup_log_events` (system log),
+  `koup_chat_messages`. All mutations go through `SECURITY DEFINER` RPCs
+  prefixed `koup_*` (`koup_declare_action`, `koup_challenge_action`,
+  `koup_block_action`, `koup_challenge_block`, `koup_choose_influence`,
+  `koup_resolve_exchange`, `koup_expire_response`, etc.) — see
+  `components/Koup/data.ts` for the full list. As with Survey Showdown, the
+  actual rules (who can challenge what, bluff resolution, elimination
+  order) live in the Postgres function bodies, not the TS layer — read the
+  function before assuming what an RPC does.
+- **Chat and the system/game log are one merged, chronologically
+  interleaved feed, not two separate UIs.** `GameLogPanel.tsx` fetches both
+  `koup_log_events` and (if `enableChat`) `koup_chat_messages`, merges them
+  by `createdAt`, and renders a single scrolling list — `RightPanel.tsx` is
+  just `GameLogPanel` + `QuickReferencePanel`, with no separate chat
+  component. An earlier standalone `ChatModal.tsx` was removed in favor of
+  this merged panel — don't reintroduce a separate chat UI when extending
+  Koup.
+- Log events (`koup_log_events.text`) are stored as flat, pre-formatted
+  strings (e.g. `"Noah claims Duke and takes Tax"`), not structured
+  actor/verb/target fields. `useGameLog.ts#matchLogActor` does a
+  best-effort "does the text start with a known player's name" match purely
+  to attach an avatar in the UI — it's not a reliable parse; don't build new
+  logic on top of string-matching log text.
 
 ## ⚠️ Must know: supabase-js RPC/query calls are lazy — awaiting them is not optional
 
