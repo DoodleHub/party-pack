@@ -26,7 +26,7 @@ export function GameInfoSidebar({
   const emptySeats = Math.max(0, maxPlayers - players.length);
 
   return (
-    <div className="flex w-full flex-col gap-4 lg:w-72 lg:shrink-0">
+    <div className="flex w-full flex-col gap-4 xl:w-72 xl:shrink-0">
       <div className="rounded-2xl border border-panel-foreground/10 bg-panel p-5 text-panel-foreground shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-panel-foreground">Players</h3>

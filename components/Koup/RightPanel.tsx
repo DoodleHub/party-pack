@@ -11,7 +11,7 @@ interface RightPanelProps {
 
 export function RightPanel({ roomId, players }: RightPanelProps) {
   return (
-    <div className="flex w-full flex-col gap-4 lg:w-72 lg:shrink-0">
+    <div className="flex w-full flex-col gap-4 xl:w-72 xl:shrink-0">
       <GameLogPanel roomId={roomId} players={players} />
       <QuickReferencePanel />
     </div>

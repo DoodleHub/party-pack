@@ -355,7 +355,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
           ) : state.status === "ended" ? (
             <GameOverScreen state={state} senderId={userId ?? "spectator"} />
           ) : (
-            <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[18rem_1fr_18rem]">
+            <div className="grid w-full min-w-0 items-start gap-6 xl:grid-cols-[18rem_1fr_18rem]">
               <GameInfoSidebar
                 players={state.players}
                 hostId={state.hostId}
