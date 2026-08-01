@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRightIcon, LockIcon } from "@/components/ui/Icon";
+import { ArrowRightIcon, LockIcon, TvIcon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/Button";
 import { ActionBar } from "@/components/Koup/ActionBar";
 import { DeckPanel } from "@/components/Koup/DeckPanel";
 import { GameInfoSidebar } from "@/components/Koup/GameInfoSidebar";
@@ -73,6 +74,8 @@ export function KoupGame({ roomCode }: KoupGameProps) {
   const [unlocked, setUnlocked] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [actionError, setActionError] = useState<string | null>(null);
+  const [tvMode, setTvMode] = useState(false);
+  const [hostTvMode, setHostTvMode] = useState(false);
 
   const stateRef = useRef<RoomState | null>(null);
   const onlineIdsRef = useRef<Set<string>>(new Set());
@@ -212,6 +215,14 @@ export function KoupGame({ roomCode }: KoupGameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.responseDeadline, state?.status, state?.roomId]);
 
+  // Only meaningful while a game is in progress — falls back to the normal
+  // layout on its own once the room leaves "active" (e.g. game ends),
+  // without needing an effect to reset the underlying toggle.
+  const tvModeActive = tvMode && state?.status === "active";
+  // Hides this viewer's own hand/coins — for a host projecting their screen
+  // to a shared display, so their own cards aren't visible to everyone else.
+  const hostTvModeActive = hostTvMode && state?.status === "active" && isHost;
+
   const needsPassword = !!state && state.visibility === "private" && state.hasPassword && !isHost;
   const locked = needsPassword && !unlocked;
   const spectatorBlocked = !!(
@@ -301,38 +312,84 @@ export function KoupGame({ roomCode }: KoupGameProps) {
   return (
     <div className="flex flex-1 flex-col bg-surface">
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 py-6 sm:px-10">
-          <Link
-            href="/games/koup"
-            className="inline-flex items-center gap-1.5 rounded-2xl border border-panel-foreground/10 bg-panel px-5 py-3 text-sm font-medium text-panel-foreground shadow-sm transition-colors hover:bg-panel-hover"
-          >
-            <ArrowRightIcon className="h-4 w-4 rotate-180" />
-            Leave Room
-          </Link>
+        {!tvModeActive && (
+          <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 py-6 sm:px-10">
+            <Link
+              href="/games/koup"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-panel-foreground/10 bg-panel px-5 py-3 text-sm font-medium text-panel-foreground shadow-sm transition-colors hover:bg-panel-hover"
+            >
+              <ArrowRightIcon className="h-4 w-4 rotate-180" />
+              Leave Room
+            </Link>
 
-          {state?.name && (
-            <div className="flex items-center gap-2">
-              {state.visibility === "private" && <LockIcon className="h-4 w-4 text-panel-muted" />}
-              <h1 className="max-w-52 truncate text-lg font-bold text-ink">{state.name}</h1>
-              <RoomIdBadge code={state.code} />
+            {state?.name && (
+              <div className="flex items-center gap-2">
+                {state.visibility === "private" && <LockIcon className="h-4 w-4 text-panel-muted" />}
+                <h1 className="max-w-52 truncate text-lg font-bold text-ink">{state.name}</h1>
+                <RoomIdBadge code={state.code} />
+              </div>
+            )}
+
+            {state?.status === "active" && (
+              <div className="flex items-center gap-3 rounded-full border border-panel-foreground/10 bg-panel px-4 py-2 text-sm text-panel-foreground shadow-sm">
+                <span className="font-semibold">Round {state.turnNumber}</span>
+                <span className="h-1 w-1 rounded-full bg-panel-foreground/20" />
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                  Turn: {turnPlayerName ?? "…"}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              {state?.status === "active" && isHost && (
+                <Button
+                  variant={hostTvMode ? "primary" : "panel"}
+                  onClick={() => setHostTvMode((v) => !v)}
+                >
+                  <TvIcon className="h-4 w-4" />
+                  {hostTvMode ? "Exit Host TV Mode" : "Host TV Mode"}
+                </Button>
+              )}
+              {state?.status === "active" && (
+                <Button variant="panel" onClick={() => setTvMode(true)}>
+                  <TvIcon className="h-4 w-4" />
+                  TV Mode
+                </Button>
+              )}
+              <GameRulesModal />
             </div>
-          )}
-
-          {state?.status === "active" && (
-            <div className="flex items-center gap-3 rounded-full border border-panel-foreground/10 bg-panel px-4 py-2 text-sm text-panel-foreground shadow-sm">
-              <span className="font-semibold">Round {state.turnNumber}</span>
-              <span className="h-1 w-1 rounded-full bg-panel-foreground/20" />
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-                Turn: {turnPlayerName ?? "…"}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <GameRulesModal />
           </div>
-        </div>
+        )}
+
+        {tvModeActive && (
+          <div className="mx-auto flex w-full max-w-[1800px] justify-end gap-3 px-6 pt-4 pb-4 sm:px-10">
+            {isHost && (
+              <button
+                type="button"
+                onClick={() => setHostTvMode((v) => !v)}
+                title={hostTvMode ? "Exit Host TV Mode" : "Host TV Mode"}
+                className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors ${
+                  hostTvMode
+                    ? "border-transparent bg-primary text-white hover:bg-primary-hover"
+                    : "border-panel-foreground/10 bg-panel text-panel-foreground hover:bg-panel-hover"
+                }`}
+              >
+                <TvIcon className="h-4 w-4" />
+                {hostTvMode ? "Exit Host TV Mode" : "Host TV Mode"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setTvMode(false)}
+              title="Exit TV Mode"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-panel-foreground/10 bg-panel px-4 py-2 text-sm font-medium text-panel-foreground shadow-sm transition-colors hover:bg-panel-hover"
+            >
+              <TvIcon className="h-4 w-4" />
+              Exit TV Mode
+            </button>
+          </div>
+        )}
 
         <div className="mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10">
           {loading ? (
@@ -350,22 +407,30 @@ export function KoupGame({ roomCode }: KoupGameProps) {
               onlineUserIds={onlineUserIds}
               onJoinRoom={handleJoinRoom}
               onStartGame={handleStartGame}
+              hostTvMode={hostTvMode}
+              onToggleHostTvMode={setHostTvMode}
             />
           ) : state.status === "ended" ? (
             <GameOverScreen state={state} senderId={userId ?? "spectator"} />
           ) : (
-            <div className="grid w-full min-w-0 items-start gap-6 xl:grid-cols-[18rem_1fr_18rem]">
-              <GameInfoSidebar
-                players={state.players}
-                hostId={state.hostId}
-                turnPlayerId={state.turnPlayerId}
-                currentUserId={userId}
-                onlineUserIds={onlineUserIds}
-                maxPlayers={state.maxPlayers}
-              />
+            <div
+              className={`grid w-full min-w-0 items-start gap-6 ${
+                tvModeActive ? "xl:grid-cols-[1fr_18rem]" : "xl:grid-cols-[18rem_1fr_18rem]"
+              }`}
+            >
+              {!tvModeActive && (
+                <GameInfoSidebar
+                  players={state.players}
+                  hostId={state.hostId}
+                  turnPlayerId={state.turnPlayerId}
+                  currentUserId={userId}
+                  onlineUserIds={onlineUserIds}
+                  maxPlayers={state.maxPlayers}
+                />
+              )}
 
               <div className="flex min-w-0 flex-col items-center gap-6">
-                <DeckPanel deckCount={state.deckCount} discardCount={state.discardCount} />
+                {!tvModeActive && <DeckPanel deckCount={state.deckCount} discardCount={state.discardCount} />}
 
                 <StatusPanel
                   state={state}
@@ -383,12 +448,14 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                   </p>
                 )}
 
-                <InfluencePanel
-                  hand={state.myHand}
-                  coins={myPlayer?.coins ?? 0}
-                  eliminated={myPlayer?.eliminated ?? false}
-                  isPlayer={isPlayer}
-                />
+                {!hostTvModeActive && (
+                  <InfluencePanel
+                    hand={state.myHand}
+                    coins={myPlayer?.coins ?? 0}
+                    eliminated={myPlayer?.eliminated ?? false}
+                    isPlayer={isPlayer}
+                  />
+                )}
 
                 <ActionBar state={state} myPlayer={myPlayer} onDeclareAction={handleDeclareAction} />
               </div>

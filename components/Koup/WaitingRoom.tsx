@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ChatIcon, CrownIcon, GlobeIcon, LockIcon, UsersIcon } from "@/components/ui/Icon";
+import { Switch } from "@/components/ui/Switch";
+import { ChatIcon, CrownIcon, GlobeIcon, LockIcon, TvIcon, UsersIcon } from "@/components/ui/Icon";
 import { avatarColor, initials } from "@/lib/avatar";
 import { ChatPanel } from "@/components/Koup/ChatPanel";
 import type { RoomState } from "@/components/Koup/types";
@@ -14,6 +15,8 @@ interface WaitingRoomProps {
   onlineUserIds: Set<string>;
   onJoinRoom: () => Promise<{ error?: string }>;
   onStartGame: () => Promise<{ error?: string }>;
+  hostTvMode: boolean;
+  onToggleHostTvMode: (enabled: boolean) => void;
 }
 
 export function WaitingRoom({
@@ -22,6 +25,8 @@ export function WaitingRoom({
   onlineUserIds,
   onJoinRoom,
   onStartGame,
+  hostTvMode,
+  onToggleHostTvMode,
 }: WaitingRoomProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +153,21 @@ export function WaitingRoom({
         <p className="mx-auto rounded-xl bg-red-100 px-4 py-2 text-center text-sm font-medium text-red-700">
           {error}
         </p>
+      )}
+
+      {isHost && (
+        <div className="mx-auto flex w-full max-w-sm items-center justify-between gap-4 rounded-2xl border border-panel-foreground/10 bg-panel px-4 py-3 text-panel-foreground shadow-sm">
+          <div className="flex items-center gap-3">
+            <TvIcon className="h-5 w-5 shrink-0 text-panel-muted" />
+            <div>
+              <p className="text-sm font-medium text-panel-foreground">TV Mode</p>
+              <p className="text-xs text-panel-muted">
+                Hide your hand once the game starts, for casting your screen.
+              </p>
+            </div>
+          </div>
+          <Switch checked={hostTvMode} onChange={onToggleHostTvMode} label="TV Mode" />
+        </div>
       )}
 
       <div className="mx-auto">
