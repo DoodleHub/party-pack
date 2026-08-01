@@ -66,6 +66,7 @@ export async function fetchRoomState(code: string): Promise<RoomState | null> {
     turnPlayerId: room.turn_player_id,
     turnNumber: room.turn_number,
     deckCount: room.deck_count,
+    discardCount: cards.filter((c) => c.revealed).length,
     phase: room.phase as Phase,
     pendingAction: room.pending_action
       ? {

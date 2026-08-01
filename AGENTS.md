@@ -121,3 +121,52 @@ write `export const f = (...) => supabase.rpc(...)` — always
 `export async function f(...) { await supabase.rpc(...); }`. If you're
 debugging "this mutation doesn't seem to happen and there's no error
 anywhere," check this first.
+
+## ⚠️ Must know: three color-token families in `app/globals.css` — never mix them
+
+Tailwind theme colors here split into three families that look
+interchangeable but are not. Full rationale and hex values live in the doc
+comment at the top of `app/globals.css` — read that before adding a fourth.
+
+- **Theme-flipping**: `text-ink`, `text-muted`, `bg-surface`, `bg-surface-alt`,
+  `bg-primary-tint` + `text-primary`. Overridden under
+  `@media (prefers-color-scheme: dark)`. Use ONLY on elements sitting
+  directly on `bg-surface` (the page background) or another theme-flipping
+  surface, so both sides flip together.
+- **Fixed light**: `bg-card`, `text-card-foreground`, `text-card-muted`,
+  `bg-card-hover`, `Badge variant="card"`, `Button variant="outline"`. Never
+  overridden for dark mode — `bg-card` is `#ffffff` in both themes. This is
+  deliberate for surfaces that should always read as light/inviting
+  regardless of theme (the game lobby / room browser —
+  `components/GameLobby/RoomRow.tsx` is the reference example).
+- **Panel** (theme-flipping card): `bg-panel`, `text-panel-foreground`,
+  `text-panel-muted`, `bg-panel-hover`, `Badge variant="panel"`, `Button
+  variant="panel"`. Same white-on-white-page look as fixed-light in light
+  mode, but flips to a dark slate surface in dark mode instead of staying
+  white. Use this for card-heavy screens people spend real time looking at
+  (a full game board) — a screenful of fixed-white `bg-card` panels against
+  a dark page is glare-inducing even though the text stays legible.
+  `components/Koup/GameInfoSidebar.tsx` is the reference example.
+
+This family split already caused two real bugs, both in the Koup
+in-progress-game redesign:
+1. It used `text-ink`/`border-ink/*`/`bg-ink/*`, `Button variant="ghost"`,
+   and `Badge variant="outline"`/`"muted"` throughout its `bg-card` panels.
+   Fine in light mode; in dark mode `--color-ink` flips to near-white while
+   `bg-card` stays fixed white, so headlines/labels/buttons went nearly
+   invisible, all at once, because the same wrong pairing was copy-pasted
+   everywhere.
+2. After fixing that, the panels were technically legible but still pure
+   white against a near-black dark-mode page — glaring, not actually a
+   contrast bug. That's what motivated adding the `panel` family above,
+   and Koup was migrated from `card` to `panel` wholesale.
+
+**Rule:** pick ONE family per surface and stay inside it for everything
+nested in that surface — never pair a theme-flipping foreground (`text-ink`,
+`text-muted`, `border-ink/*`, `bg-ink/*`, `Button variant="ghost"`, `Badge
+variant="outline"`/`"muted"`) with a `bg-card` or `bg-panel` surface. For a
+new card-heavy game/screen, default to `panel` unless there's a specific
+reason it should stay pure-white in dark mode (matching the lobby's fixed
+family instead). Before shipping, sanity-check by eye with the OS color
+scheme toggled to dark (or `prefers-color-scheme: dark` in devtools) — both
+bugs above were invisible in light mode.

@@ -23,11 +23,11 @@ export function PasswordGate({ roomName, onSubmit }: PasswordGateProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-white/10 bg-black/50 p-8 text-center text-white backdrop-blur-md">
+    <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-panel-foreground/10 bg-panel p-8 text-center text-panel-foreground shadow-sm">
       <LockIcon className="h-8 w-8 text-primary" />
       <div>
         <h2 className="text-lg font-semibold">{roomName || "Private Room"}</h2>
-        <p className="mt-1 text-sm text-white/60">This room is private. Enter the password to join.</p>
+        <p className="mt-1 text-sm text-panel-muted">This room is private. Enter the password to join.</p>
       </div>
       <input
         type="password"
@@ -38,9 +38,9 @@ export function PasswordGate({ roomName, onSubmit }: PasswordGateProps) {
         }}
         placeholder="Room password"
         autoFocus
-        className="h-11 w-full rounded-xl border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+        className="h-11 w-full rounded-xl border border-panel-foreground/10 bg-panel-hover px-4 text-sm text-panel-foreground placeholder:text-panel-muted focus:border-primary focus:outline-none"
       />
-      {error && <p className="text-sm text-red-400">Incorrect password. Try again.</p>}
+      {error && <p className="text-sm text-red-500">Incorrect password. Try again.</p>}
       <Button variant="primary" className="w-full" onClick={handleSubmit} disabled={checking}>
         {checking ? "Checking…" : "Enter Room"}
       </Button>

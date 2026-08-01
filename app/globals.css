@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------
+   Three token families, and they DO NOT MIX:
+
+   1. Theme-flipping — text-ink, text-muted, bg-surface, bg-surface-alt,
+      bg-primary-tint + text-primary. Overridden below under
+      `@media (prefers-color-scheme: dark)`. Use ONLY on elements that sit
+      directly on the page background (bg-surface) or another
+      theme-flipping surface, where both sides flip together and stay
+      legible in both modes.
+
+   2. Fixed light — bg-card, text-card-foreground, text-card-muted,
+      bg-card-hover. Never overridden for dark mode — bg-card is #ffffff
+      in both themes. This is a deliberate choice for surfaces that should
+      always read as "light and inviting" regardless of site theme (e.g.
+      the game lobby / room browser, components/GameLobby/RoomRow.tsx).
+      Use the fixed foreground counterparts for anything inside one.
+
+   3. Panel (theme-flipping card) — bg-panel, text-panel-foreground,
+      text-panel-muted, bg-panel-hover. White-on-light-gray in light mode
+      (visually identical to the fixed-light family), but flips to a dark
+      slate surface in dark mode instead of staying white. Use this for
+      card-heavy screens people spend real time looking at (a full game
+      board, not a quick browse list) — a screenful of fixed-white bg-card
+      panels against a dark page is glare-inducing even though the text
+      itself stays legible. See components/Koup/* (the in-game screens)
+      for the reference usage.
+
+   Pairing a theme-flipping foreground (text-ink, text-muted, a
+   border-ink/* or bg-ink/* accent, Button variant="ghost", Badge
+   variant="outline"/"muted") with a bg-card OR bg-panel surface is the
+   single most common bug in this file's history: in dark mode
+   --color-ink flips to near-white while bg-card/bg-panel's *light-mode*
+   value is also white, so if you mix families the text goes
+   near-invisible. Badge variant="card"/"panel" and Button
+   variant="outline"/"panel" exist specifically as the matching fixed/panel
+   counterparts — reach for those instead. When in doubt, grep this
+   codebase for how components/GameLobby/RoomRow.tsx (fixed-light) or
+   components/Koup/GameInfoSidebar.tsx (panel) does it.
+   --------------------------------------------------------------------- */
 :root {
   /* Brand palette */
   --color-primary: #6c4dd3;
@@ -18,6 +57,13 @@
   --color-card-foreground: #111827;
   --color-card-muted: #6b7280;
   --color-card-hover: #f1f5f9;
+
+  /* Panel — like --color-card in light mode, but flips to a dark slate
+     surface in dark mode (see the family-3 doc comment above). */
+  --color-panel: #ffffff;
+  --color-panel-foreground: #111827;
+  --color-panel-muted: #6b7280;
+  --color-panel-hover: #f1f5f9;
 
   /* Fixed solid-dark surface for filled "dark" UI elements (e.g. the Sign In
      button) that must stay visibly distinct from the page background in both
@@ -45,6 +91,10 @@
   --color-card-foreground: var(--color-card-foreground);
   --color-card-muted: var(--color-card-muted);
   --color-card-hover: var(--color-card-hover);
+  --color-panel: var(--color-panel);
+  --color-panel-foreground: var(--color-panel-foreground);
+  --color-panel-muted: var(--color-panel-muted);
+  --color-panel-hover: var(--color-panel-hover);
   --color-solid: var(--color-solid);
   --color-solid-hover: var(--color-solid-hover);
   --font-sans: var(--font-geist-sans);
@@ -60,6 +110,14 @@
     --color-muted: #9ca3af;
     --color-surface: #111827;
     --color-surface-alt: #1a2233;
+
+    /* Reuses --color-solid's slate tones for the dark-mode panel surface,
+       so panels read as part of the same "dark UI chrome" language as
+       filled-dark buttons elsewhere, rather than inventing a new hue. */
+    --color-panel: #1e293b;
+    --color-panel-foreground: #f1f5f9;
+    --color-panel-muted: #94a3b8;
+    --color-panel-hover: #334155;
 
     --background: var(--color-surface);
     --foreground: var(--color-ink);

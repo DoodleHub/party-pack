@@ -12,11 +12,11 @@ export function GameOverScreen({ state, senderId }: { state: RoomState; senderId
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col items-start gap-6 lg:flex-row">
-      <div className="flex w-full flex-1 flex-col items-center gap-6 rounded-2xl border border-white/10 bg-black/50 p-10 text-center text-white backdrop-blur-md">
-        <TrophyIcon className="h-10 w-10 text-amber-400" />
+      <div className="flex w-full flex-1 flex-col items-center gap-6 rounded-2xl border border-panel-foreground/10 bg-panel p-10 text-center text-panel-foreground shadow-sm">
+        <TrophyIcon className="h-10 w-10 text-amber-500" />
         <div>
-          <h1 className="text-3xl font-extrabold">Game Over</h1>
-          <p className="mt-2 text-white/70">{winner ? `${winner.name} wins!` : "The table has cleared."}</p>
+          <h1 className="text-3xl font-extrabold text-panel-foreground">Game Over</h1>
+          <p className="mt-2 text-panel-muted">{winner ? `${winner.name} wins!` : "The table has cleared."}</p>
         </div>
         <div className="flex w-full flex-col gap-2">
           {ranked.map((player) => (
@@ -24,8 +24,8 @@ export function GameOverScreen({ state, senderId }: { state: RoomState; senderId
               key={player.id}
               className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
                 player.id === state.winnerPlayerId
-                  ? "border-amber-400/50 bg-amber-400/10"
-                  : "border-white/10 bg-white/5"
+                  ? "border-amber-400/60 bg-amber-50"
+                  : "border-panel-foreground/10 bg-panel-hover"
               }`}
             >
               <span className="flex items-center gap-2.5">
@@ -35,7 +35,7 @@ export function GameOverScreen({ state, senderId }: { state: RoomState; senderId
                 >
                   {initials(player.name)}
                 </span>
-                <span className="font-medium">{player.name}</span>
+                <span className="font-medium text-panel-foreground">{player.name}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 {player.revealedCards.map((c, i) => {
@@ -50,7 +50,7 @@ export function GameOverScreen({ state, senderId }: { state: RoomState; senderId
       </div>
 
       {state.enableChat && (
-        <div className="h-96 w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/50 p-4 lg:w-80">
+        <div className="h-96 w-full shrink-0 overflow-hidden rounded-2xl border border-panel-foreground/10 bg-panel p-4 shadow-sm lg:w-80">
           <ChatPanel roomId={state.roomId} senderId={senderId} />
         </div>
       )}

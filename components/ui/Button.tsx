@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "dark";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "panel" | "dark";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,10 @@ const variantClasses: Record<ButtonVariant, string> = {
     "bg-transparent text-ink border border-muted/30 hover:bg-surface-alt",
   outline:
     "bg-card text-card-foreground border border-card-foreground/10 hover:bg-card-hover",
+  // Like `outline`, but for use inside a bg-panel surface (which flips dark) —
+  // see the token-family doc comment in app/globals.css.
+  panel:
+    "bg-panel text-panel-foreground border border-panel-foreground/10 hover:bg-panel-hover",
   dark:
     "bg-solid text-white ring-1 ring-inset ring-white/10 hover:bg-solid-hover",
 };

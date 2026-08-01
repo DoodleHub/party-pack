@@ -89,6 +89,7 @@ export interface RoomState {
   turnPlayerId: string | null;
   turnNumber: number;
   deckCount: number;
+  discardCount: number;
   phase: Phase;
   pendingAction: PendingAction | null;
   pendingBlock: PendingBlock | null;

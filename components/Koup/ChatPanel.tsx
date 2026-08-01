@@ -60,21 +60,21 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
         className="flex-1 space-y-2 overflow-y-auto pr-1 text-sm"
       >
         {messages.length === 0 ? (
-          <p className="text-white/40">No messages yet.</p>
+          <p className="text-panel-muted">No messages yet.</p>
         ) : (
           messages.map((m) =>
             m.userId === null ? (
-              <p key={m.id} className="text-center text-xs italic text-white/50">
+              <p key={m.id} className="text-center text-xs italic text-panel-muted">
                 {m.text}
               </p>
             ) : (
               <p key={m.id} className="wrap-break-word">
                 <span
-                  className={`font-semibold ${m.userId === senderId ? "text-primary" : "text-white/80"}`}
+                  className={`font-semibold ${m.userId === senderId ? "text-primary" : "text-panel-foreground"}`}
                 >
                   {m.name}:
                 </span>{" "}
-                <span className="text-white/90">{m.text}</span>
+                <span className="text-panel-foreground/90">{m.text}</span>
               </p>
             ),
           )
@@ -90,7 +90,7 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
             if (e.key === "Enter") handleSend();
           }}
           placeholder="Say something…"
-          className="h-9 min-w-0 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
+          className="h-9 min-w-0 flex-1 rounded-full border border-panel-foreground/10 bg-panel-hover px-4 text-sm text-panel-foreground placeholder:text-panel-muted focus:border-primary focus:outline-none"
         />
         <button
           type="button"

@@ -39,10 +39,10 @@ export function PlayingCard({
   const meta = character ? CHARACTER_META[character] : null;
   const Icon = meta?.icon ?? CrownIcon;
 
-  const base = `relative flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border-2 shadow-md transition-transform ${SIZE_CLASSES[size]}`;
+  const base = `relative flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border-2 shadow-sm transition-transform ${SIZE_CLASSES[size]}`;
   const interactive = onClick ? "cursor-pointer hover:-translate-y-1" : "";
   const dimmed = dim ? "opacity-40 grayscale" : "";
-  const selectedRing = selected ? "ring-2 ring-offset-2 ring-offset-[#150c2e] ring-primary" : "";
+  const selectedRing = selected ? "ring-2 ring-offset-2 ring-offset-card ring-primary" : "";
 
   if (isFaceUp) {
     return (
@@ -67,9 +67,9 @@ export function PlayingCard({
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className={`${base} border-amber-400/50 bg-linear-to-b from-[#4a3466] to-[#2c1c47] ${interactive} ${dimmed} ${selectedRing} ${className}`}
+      className={`${base} border-amber-400/60 bg-primary-tint ${interactive} ${dimmed} ${selectedRing} ${className}`}
     >
-      <CrownIcon className={`${ICON_SIZE[size]} text-amber-300/70`} />
+      <CrownIcon className={`${ICON_SIZE[size]} text-amber-500`} />
     </button>
   );
 }

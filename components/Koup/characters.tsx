@@ -16,16 +16,20 @@ export const CHARACTER_META: Record<
   Character,
   { label: string; icon: IconComponent; color: string; ring: string; bg: string }
 > = {
-  duke: { label: "Duke", icon: CrownIcon, color: "text-amber-400", ring: "ring-amber-400/60", bg: "bg-amber-400/15" },
-  assassin: { label: "Assassin", icon: SwordIcon, color: "text-rose-400", ring: "ring-rose-400/60", bg: "bg-rose-400/15" },
-  captain: { label: "Captain", icon: AnchorIcon, color: "text-sky-400", ring: "ring-sky-400/60", bg: "bg-sky-400/15" },
-  ambassador: { label: "Ambassador", icon: MaskIcon, color: "text-emerald-400", ring: "ring-emerald-400/60", bg: "bg-emerald-400/15" },
-  contessa: { label: "Contessa", icon: ShieldIcon, color: "text-pink-400", ring: "ring-pink-400/60", bg: "bg-pink-400/15" },
+  duke: { label: "Duke", icon: CrownIcon, color: "text-amber-600", ring: "ring-amber-400/60", bg: "bg-amber-400/15" },
+  assassin: { label: "Assassin", icon: SwordIcon, color: "text-rose-600", ring: "ring-rose-400/60", bg: "bg-rose-400/15" },
+  captain: { label: "Captain", icon: AnchorIcon, color: "text-sky-600", ring: "ring-sky-400/60", bg: "bg-sky-400/15" },
+  ambassador: { label: "Ambassador", icon: MaskIcon, color: "text-emerald-600", ring: "ring-emerald-400/60", bg: "bg-emerald-400/15" },
+  contessa: { label: "Contessa", icon: ShieldIcon, color: "text-pink-600", ring: "ring-pink-400/60", bg: "bg-pink-400/15" },
 };
 
 export interface ActionMeta {
   action: ActionType;
   label: string;
+  verb: string;
+  /** Short effect summary for the status panel's subtitle, e.g. "+3 Coins". Empty when the
+   * verb alone already says it (Exchange). */
+  effect: string;
   icon: IconComponent;
   color: string;
   needsTarget: boolean;
@@ -40,8 +44,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   income: {
     action: "income",
     label: "Income",
+    verb: "Taking Income",
+    effect: "+1 Coin",
     icon: CoinsIcon,
-    color: "text-amber-300",
+    color: "text-amber-600",
     needsTarget: false,
     claim: null,
     cost: 0,
@@ -52,8 +58,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   foreign_aid: {
     action: "foreign_aid",
     label: "Foreign Aid",
+    verb: "Taking Foreign Aid",
+    effect: "+2 Coins",
     icon: HandshakeIcon,
-    color: "text-sky-300",
+    color: "text-sky-600",
     needsTarget: false,
     claim: null,
     cost: 0,
@@ -64,8 +72,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   tax: {
     action: "tax",
     label: "Tax",
+    verb: "Taking Tax",
+    effect: "+3 Coins",
     icon: CHARACTER_META.duke.icon,
-    color: "text-amber-300",
+    color: "text-amber-600",
     needsTarget: false,
     claim: "duke",
     cost: 0,
@@ -76,8 +86,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   steal: {
     action: "steal",
     label: "Steal",
+    verb: "Stealing",
+    effect: "2 Coins",
     icon: CHARACTER_META.captain.icon,
-    color: "text-sky-300",
+    color: "text-sky-600",
     needsTarget: true,
     claim: "captain",
     cost: 0,
@@ -88,8 +100,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   assassinate: {
     action: "assassinate",
     label: "Assassinate",
+    verb: "Assassinating",
+    effect: "Eliminate 1 Influence",
     icon: CHARACTER_META.assassin.icon,
-    color: "text-rose-300",
+    color: "text-rose-600",
     needsTarget: true,
     claim: "assassin",
     cost: 3,
@@ -100,8 +114,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   exchange: {
     action: "exchange",
     label: "Exchange",
+    verb: "Exchanging Cards",
+    effect: "",
     icon: CHARACTER_META.ambassador.icon,
-    color: "text-emerald-300",
+    color: "text-emerald-600",
     needsTarget: false,
     claim: "ambassador",
     cost: 0,
@@ -112,8 +128,10 @@ export const ACTION_META: Record<ActionType, ActionMeta> = {
   coup: {
     action: "coup",
     label: "Coup",
+    verb: "Launching a Coup",
+    effect: "Eliminate 1 Influence",
     icon: CrownIcon,
-    color: "text-amber-300",
+    color: "text-amber-600",
     needsTarget: true,
     claim: null,
     cost: 7,

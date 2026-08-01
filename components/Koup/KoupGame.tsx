@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRightIcon, CoinsIcon, CopyIcon, LinkIcon, LockIcon } from "@/components/ui/Icon";
+import { ArrowRightIcon, LockIcon } from "@/components/ui/Icon";
 import { ActionBar } from "@/components/Koup/ActionBar";
+import { ChatModal } from "@/components/Koup/ChatModal";
+import { DeckPanel } from "@/components/Koup/DeckPanel";
 import { GameInfoSidebar } from "@/components/Koup/GameInfoSidebar";
 import { GameOverScreen } from "@/components/Koup/GameOverScreen";
 import { GameRulesModal } from "@/components/Koup/GameRulesModal";
-import { GameTable } from "@/components/Koup/GameTable";
+import { InfluencePanel } from "@/components/Koup/InfluencePanel";
 import { PasswordGate } from "@/components/Koup/PasswordGate";
 import { RightPanel } from "@/components/Koup/RightPanel";
+import { StatusPanel } from "@/components/Koup/StatusPanel";
 import { WaitingRoom } from "@/components/Koup/WaitingRoom";
 import {
   announceDisconnect,
@@ -38,7 +41,7 @@ import type { ActionType, Character, RoomState } from "@/components/Koup/types";
 
 const DISCONNECT_GRACE_MS = 8000;
 
-function RoomCodeChip({ code }: { code: string }) {
+function RoomIdBadge({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -52,34 +55,9 @@ function RoomCodeChip({ code }: { code: string }) {
       type="button"
       onClick={handleCopy}
       title="Copy room code"
-      className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+      className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-surface-alt px-3 py-1 text-xs font-medium text-muted transition-colors hover:text-ink"
     >
-      <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Room</span>
-      <span className="text-sm font-bold tracking-widest">{code}</span>
-      <CopyIcon className="h-4 w-4" />
-      {copied && <span className="text-xs">Copied</span>}
-    </button>
-  );
-}
-
-function CopyRoomLinkButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(`${window.location.origin}/games/koup/room/${code}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      title="Copy room link"
-      className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/20"
-    >
-      <LinkIcon className="h-4 w-4" />
-      <span className="text-sm font-semibold">{copied ? "Copied!" : "Copy Link"}</span>
+      {copied ? "Copied!" : `ID: ${code}`}
     </button>
   );
 }
@@ -234,7 +212,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.responseDeadline, state?.status, state?.roomId]);
 
-  const needsPassword = !!state && state.visibility === "private" && state.hasPassword;
+  const needsPassword = !!state && state.visibility === "private" && state.hasPassword && !isHost;
   const locked = needsPassword && !unlocked;
   const spectatorBlocked = !!(
     state &&
@@ -321,66 +299,51 @@ export function KoupGame({ roomCode }: KoupGameProps) {
   const turnPlayerName = state?.players.find((p) => p.id === state.turnPlayerId)?.name ?? null;
 
   return (
-    <div
-      className="relative flex flex-1 flex-col overflow-hidden"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% -10%, #4a3466 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 100% 100%, #2c1c47 0%, transparent 60%), #0d0818",
-      }}
-    >
-      <div className="relative z-10 flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 pb-6 pt-8 sm:px-10">
+    <div className="flex flex-1 flex-col bg-surface">
+      <div className="flex flex-1 flex-col">
+        <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-4 px-6 py-6 sm:px-10">
           <Link
             href="/games/koup"
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-black/40 px-5 py-3 text-sm font-medium text-white backdrop-blur-md"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-panel-foreground/10 bg-panel px-5 py-3 text-sm font-medium text-panel-foreground shadow-sm transition-colors hover:bg-panel-hover"
           >
             <ArrowRightIcon className="h-4 w-4 rotate-180" />
             Leave Room
           </Link>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {state?.status === "active" && (
-              <div className="flex items-center gap-2 rounded-2xl bg-black/40 px-4 py-3 text-white backdrop-blur-md">
-                <CoinsIcon className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-semibold">Court Deck</p>
-                  <p className="text-xs text-white/60">{state.deckCount}</p>
-                </div>
-              </div>
-            )}
-            {state?.status === "active" && (
-              <div className="flex items-center gap-2 rounded-2xl bg-black/40 px-4 py-3 text-white backdrop-blur-md">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-                <div>
-                  <p className="text-sm font-semibold">Round {state.turnNumber}</p>
-                  <p className="text-xs text-white/60">Turn: {turnPlayerName ?? "…"}</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {state?.name && (
+            <div className="flex items-center gap-2">
+              {state.visibility === "private" && <LockIcon className="h-4 w-4 text-panel-muted" />}
+              <h1 className="max-w-52 truncate text-lg font-bold text-ink">{state.name}</h1>
+              <RoomIdBadge code={state.code} />
+            </div>
+          )}
 
-          <div className="flex flex-wrap items-center gap-3">
-            {state?.name && (
-              <div className="flex items-center gap-2 rounded-2xl bg-black/40 px-4 py-3 text-sm font-semibold text-white backdrop-blur-md">
-                {state.visibility === "private" && <LockIcon className="h-3.5 w-3.5 text-white/60" />}
-                <span className="max-w-40 truncate">{state.name}</span>
-              </div>
-            )}
-            {state && <RoomCodeChip code={state.code} />}
-            {state && <CopyRoomLinkButton code={state.code} />}
+          {state?.status === "active" && (
+            <div className="flex items-center gap-3 rounded-full border border-panel-foreground/10 bg-panel px-4 py-2 text-sm text-panel-foreground shadow-sm">
+              <span className="font-semibold">Round {state.turnNumber}</span>
+              <span className="h-1 w-1 rounded-full bg-panel-foreground/20" />
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                Turn: {turnPlayerName ?? "…"}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
             <GameRulesModal />
+            {state?.enableChat && <ChatModal roomId={state.roomId} senderId={userId ?? "spectator"} />}
           </div>
         </div>
 
         <div className="mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10">
           {loading ? (
-            <p className="mx-auto text-white/70">Loading game…</p>
+            <p className="mx-auto text-panel-muted">Loading game…</p>
           ) : !state ? (
-            <p className="mx-auto text-white/70">Couldn&apos;t find that room.</p>
+            <p className="mx-auto text-panel-muted">Couldn&apos;t find that room.</p>
           ) : locked ? (
             <PasswordGate roomName={state.name} onSubmit={handleVerifyPassword} />
           ) : spectatorBlocked ? (
-            <p className="mx-auto text-white/70">This room doesn&apos;t allow spectators.</p>
+            <p className="mx-auto text-panel-muted">This room doesn&apos;t allow spectators.</p>
           ) : state.status === "waiting" ? (
             <WaitingRoom
               room={state}
@@ -392,7 +355,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
           ) : state.status === "ended" ? (
             <GameOverScreen state={state} senderId={userId ?? "spectator"} />
           ) : (
-            <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[16rem_1fr_18rem]">
+            <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[18rem_1fr_18rem]">
               <GameInfoSidebar
                 players={state.players}
                 hostId={state.hostId}
@@ -403,32 +366,35 @@ export function KoupGame({ roomCode }: KoupGameProps) {
               />
 
               <div className="flex min-w-0 flex-col items-center gap-6">
-                <GameTable state={state} myPlayerId={myPlayer?.id ?? null} onlineUserIds={onlineUserIds} />
-                {actionError && (
-                  <p className="rounded-xl bg-red-500/20 px-4 py-2 text-center text-sm font-medium text-red-200">
-                    {actionError}
-                  </p>
-                )}
-                <ActionBar
+                <DeckPanel deckCount={state.deckCount} discardCount={state.discardCount} />
+
+                <StatusPanel
                   state={state}
                   myPlayer={myPlayer}
-                  onDeclareAction={handleDeclareAction}
                   onChallengeAction={handleChallengeAction}
                   onBlockAction={handleBlockAction}
                   onChallengeBlock={handleChallengeBlock}
                   onChooseInfluence={handleChooseInfluence}
                   onResolveExchange={handleResolveExchange}
                 />
+
+                {actionError && (
+                  <p className="w-full rounded-xl bg-red-100 px-4 py-2 text-center text-sm font-medium text-red-700">
+                    {actionError}
+                  </p>
+                )}
+
+                <InfluencePanel
+                  hand={state.myHand}
+                  coins={myPlayer?.coins ?? 0}
+                  eliminated={myPlayer?.eliminated ?? false}
+                  isPlayer={isPlayer}
+                />
+
+                <ActionBar state={state} myPlayer={myPlayer} onDeclareAction={handleDeclareAction} />
               </div>
 
-              <RightPanel
-                roomId={state.roomId}
-                senderId={userId ?? "spectator"}
-                enableChat={state.enableChat}
-                hand={state.myHand}
-                eliminated={myPlayer?.eliminated ?? false}
-                isPlayer={isPlayer}
-              />
+              <RightPanel roomId={state.roomId} players={state.players} />
             </div>
           )}
         </div>
