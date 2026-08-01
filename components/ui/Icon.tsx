@@ -594,6 +594,23 @@ export function SunIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function SkullIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M12 3.5c-4.14 0-7.5 3.13-7.5 7 0 2.53 1.42 4.75 3.55 6v2.25c0 .55.45 1 1 1h1.2v-1.75h1v1.75h1.5v-1.75h1v1.75h1.2c.55 0 1-.45 1-1V16.5c2.13-1.25 3.55-3.47 3.55-6 0-3.87-3.36-7-7.5-7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9.25" cy="11" r="1.4" fill="currentColor" />
+      <circle cx="14.75" cy="11" r="1.4" fill="currentColor" />
+      <path d="M11 13.5h2l-1 1.75-1-1.75Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function SpinnerIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>

@@ -14,6 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
+      codenames_cards: {
+        Row: {
+          created_at: string
+          grid_position: number
+          id: string
+          revealed: boolean
+          revealed_at: string | null
+          revealed_by_player_id: string | null
+          revealed_team: string | null
+          room_id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          grid_position: number
+          id?: string
+          revealed?: boolean
+          revealed_at?: string | null
+          revealed_by_player_id?: string | null
+          revealed_team?: string | null
+          room_id: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          grid_position?: number
+          id?: string
+          revealed?: boolean
+          revealed_at?: string | null
+          revealed_by_player_id?: string | null
+          revealed_team?: string | null
+          room_id?: string
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codenames_cards_revealed_by_player_id_fkey"
+            columns: ["revealed_by_player_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "codenames_cards_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codenames_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          room_id: string
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          room_id: string
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          room_id?: string
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codenames_chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codenames_key: {
+        Row: {
+          grid_position: number
+          id: string
+          room_id: string
+          team: string
+        }
+        Insert: {
+          grid_position: number
+          id?: string
+          room_id: string
+          team: string
+        }
+        Update: {
+          grid_position?: number
+          id?: string
+          room_id?: string
+          team?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codenames_key_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codenames_log_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          room_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          room_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codenames_log_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codenames_players: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          role: string
+          room_id: string
+          sort_order: number
+          team: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          role?: string
+          room_id: string
+          sort_order?: number
+          team?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string
+          room_id?: string
+          sort_order?: number
+          team?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codenames_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "codenames_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codenames_rooms: {
+        Row: {
+          allow_spectators: boolean
+          blue_remaining: number
+          clue_given_at: string | null
+          clue_number: number | null
+          clue_unlimited: boolean
+          clue_word: string | null
+          code: string
+          created_at: string
+          enable_chat: boolean
+          guesses_max: number | null
+          guesses_used: number
+          host_id: string | null
+          id: string
+          max_players: number
+          name: string
+          password_hash: string | null
+          red_remaining: number
+          response_deadline: string | null
+          starting_team: string | null
+          status: string
+          turn_number: number
+          turn_phase: string | null
+          turn_team: string | null
+          updated_at: string
+          visibility: string
+          winner_team: string | null
+        }
+        Insert: {
+          allow_spectators?: boolean
+          blue_remaining?: number
+          clue_given_at?: string | null
+          clue_number?: number | null
+          clue_unlimited?: boolean
+          clue_word?: string | null
+          code: string
+          created_at?: string
+          enable_chat?: boolean
+          guesses_max?: number | null
+          guesses_used?: number
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          password_hash?: string | null
+          red_remaining?: number
+          response_deadline?: string | null
+          starting_team?: string | null
+          status?: string
+          turn_number?: number
+          turn_phase?: string | null
+          turn_team?: string | null
+          updated_at?: string
+          visibility?: string
+          winner_team?: string | null
+        }
+        Update: {
+          allow_spectators?: boolean
+          blue_remaining?: number
+          clue_given_at?: string | null
+          clue_number?: number | null
+          clue_unlimited?: boolean
+          clue_word?: string | null
+          code?: string
+          created_at?: string
+          enable_chat?: boolean
+          guesses_max?: number | null
+          guesses_used?: number
+          host_id?: string | null
+          id?: string
+          max_players?: number
+          name?: string
+          password_hash?: string | null
+          red_remaining?: number
+          response_deadline?: string | null
+          starting_team?: string | null
+          status?: string
+          turn_number?: number
+          turn_phase?: string | null
+          turn_team?: string | null
+          updated_at?: string
+          visibility?: string
+          winner_team?: string | null
+        }
+        Relationships: []
+      }
+      codenames_word_bank: {
+        Row: {
+          word: string
+        }
+        Insert: {
+          word: string
+        }
+        Update: {
+          word?: string
+        }
+        Relationships: []
+      }
       koup_cards: {
         Row: {
           character: string
@@ -988,6 +1275,87 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      codenames_advance_turn: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      codenames_announce_disconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_announce_left_game: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      codenames_announce_reconnect: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_become_operative: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      codenames_claim_host: { Args: { p_room_id: string }; Returns: undefined }
+      codenames_claim_spymaster: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      codenames_create_room: {
+        Args: {
+          p_allow_spectators: boolean
+          p_enable_chat: boolean
+          p_max_players: number
+          p_name: string
+          p_password: string
+          p_visibility: string
+        }
+        Returns: string
+      }
+      codenames_expire_turn: { Args: { p_room_id: string }; Returns: undefined }
+      codenames_give_clue: {
+        Args: {
+          p_number: number
+          p_room_id: string
+          p_unlimited: boolean
+          p_word: string
+        }
+        Returns: undefined
+      }
+      codenames_guess_card: {
+        Args: { p_card_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_join_team: {
+        Args: { p_room_id: string; p_team: string }
+        Returns: undefined
+      }
+      codenames_leave_team: { Args: { p_room_id: string }; Returns: undefined }
+      codenames_pass_turn: { Args: { p_room_id: string }; Returns: undefined }
+      codenames_post_log_event: {
+        Args: { p_kind: string; p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      codenames_reassign_or_delete_room: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_remove_player: {
+        Args: { p_player_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_send_chat_message: {
+        Args: { p_room_id: string; p_text: string }
+        Returns: undefined
+      }
+      codenames_start_game: { Args: { p_room_id: string }; Returns: undefined }
+      codenames_transfer_host: {
+        Args: { p_departing_user_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      codenames_verify_password: {
+        Args: { p_code: string; p_password: string }
+        Returns: boolean
+      }
       koup_advance_turn: { Args: { p_room_id: string }; Returns: undefined }
       koup_announce_disconnect: {
         Args: { p_player_id: string; p_room_id: string }
@@ -1262,6 +1630,10 @@ export type Database = {
         Returns: undefined
       }
       yakuza_expire_phase: { Args: { p_room_id: string }; Returns: undefined }
+      yakuza_is_mafia_teammate: {
+        Args: { p_room_id: string }
+        Returns: boolean
+      }
       yakuza_join_room: { Args: { p_room_id: string }; Returns: undefined }
       yakuza_leave_room: { Args: { p_room_id: string }; Returns: undefined }
       yakuza_post_log_event: {

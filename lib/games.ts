@@ -2,6 +2,7 @@ import type { StaticImageData } from "next/image";
 import surveyShowdownImage from "@/public/games/survey-showdown.png";
 import yakuzaImage from "@/public/games/yakuza.png";
 import koupImage from "@/public/games/koup.png";
+import codenamesImage from "@/public/games/codenames.png";
 
 export type GameCover = StaticImageData | { gradient: string };
 
@@ -38,5 +39,13 @@ export const games: Game[] = [
     players: "2–6 Players",
     type: "Bluffing",
     description: "Bluff, deceive, and outsmart your way to victory.",
+  },
+  {
+    slug: "codenames",
+    name: "Codenames",
+    cover: codenamesImage,
+    players: "4–10 Players",
+    type: "Word Game",
+    description: "Give one-word clues to help your team find their secret agents first.",
   },
 ];
