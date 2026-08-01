@@ -318,10 +318,10 @@ export function CreateRoomForm({ game, onCreateRoom }: CreateRoomFormProps) {
                 variant="primary"
                 className="w-full sm:w-auto"
                 onClick={handleCreateRoom}
-                disabled={creating}
+                loading={creating}
               >
                 <UsersIcon className="h-4 w-4" />
-                {creating ? "Creating…" : "Create Room"}
+                Create Room
               </Button>
             </div>
           </div>

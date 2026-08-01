@@ -30,10 +30,13 @@ export function WaitingRoom({
   onLeaveTeam,
   onStartGame,
 }: WaitingRoomProps) {
-  const [pending, setPending] = useState(false);
+  // Tracks which specific button triggered the in-flight RPC, so only that
+  // one shows a spinner instead of every button on the screen going busy.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teamsRef, teamsHeight] = useMatchHeight<HTMLDivElement>();
 
+  const pending = pendingAction !== null;
   const totalPlayers = room.teams.reduce((sum, t) => sum + t.players.length, 0);
   const isFull = totalPlayers >= room.maxPlayers;
   const myTeamSlot = room.teams.find((t) => t.players.some((p) => p.userId === currentUserId))
@@ -42,25 +45,25 @@ export function WaitingRoom({
   const eachTeamHasPlayer = room.teams.every((t) => t.players.length > 0);
 
   async function handleJoin(slot: 1 | 2) {
-    setPending(true);
+    setPendingAction(`join-${slot}`);
     setError(null);
     const result = await onJoinTeam(slot);
-    setPending(false);
+    setPendingAction(null);
     if (result.error) setError(result.error);
   }
 
   async function handleLeave() {
-    setPending(true);
+    setPendingAction("leave");
     setError(null);
     await onLeaveTeam();
-    setPending(false);
+    setPendingAction(null);
   }
 
   async function handleStart() {
-    setPending(true);
+    setPendingAction("start");
     setError(null);
     const result = await onStartGame();
-    setPending(false);
+    setPendingAction(null);
     if (result.error) setError(result.error);
   }
 
@@ -70,6 +73,7 @@ export function WaitingRoom({
         variant="primary"
         size="lg"
         onClick={handleStart}
+        loading={pendingAction === "start"}
         disabled={pending || !eachTeamHasPlayer}
       >
         Start Game
@@ -164,6 +168,7 @@ export function WaitingRoom({
                       variant="ghost"
                       className="mt-4 w-full border-white/20 text-white hover:bg-white/10"
                       onClick={handleLeave}
+                      loading={pendingAction === "leave"}
                       disabled={pending}
                     >
                       Leave Team
@@ -173,6 +178,7 @@ export function WaitingRoom({
                       variant="primary"
                       className="mt-4 w-full"
                       onClick={() => handleJoin(team.slot)}
+                      loading={pendingAction === `join-${team.slot}`}
                       disabled={pending || (isFull && myTeamSlot === undefined)}
                     >
                       Join {style.label}

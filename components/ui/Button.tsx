@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes } from "react";
+import { SpinnerIcon } from "@/components/ui/Icon";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "panel" | "dark";
 type ButtonSize = "sm" | "md" | "lg";
@@ -6,6 +7,9 @@ type ButtonSize = "sm" | "md" | "lg";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  // Shows a spinner and disables the button — for the gap between a click
+  // and its RPC round-trip resolving, since this app has no optimistic UI.
+  loading?: boolean;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -35,12 +39,20 @@ export function Button({
   variant = "primary",
   size = "md",
   className = "",
+  loading = false,
+  disabled,
+  children,
   ...props
 }: ButtonProps) {
   return (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {loading && <SpinnerIcon className="h-4 w-4 shrink-0 animate-spin" />}
+      {children}
+    </button>
   );
 }

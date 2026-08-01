@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangleIcon, CloseIcon } from "@/components/ui/Icon";
+import { AlertTriangleIcon, CloseIcon, SpinnerIcon } from "@/components/ui/Icon";
 import { avatarColor, initials } from "@/lib/avatar";
 import { ACTION_META, ACTION_ORDER, type ActionMeta } from "@/components/Koup/characters";
 import type { ActionType, Player, RoomState } from "@/components/Koup/types";
@@ -25,23 +25,27 @@ interface ActionBarProps {
 
 export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) {
   const [pendingTargetAction, setPendingTargetAction] = useState<ActionType | null>(null);
-  const [busy, setBusy] = useState(false);
+  // Tracks which specific button (action or target) triggered the in-flight
+  // RPC, so only that one shows a spinner instead of the whole bar going busy.
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local target picker whenever the server-driven phase moves on
     setPendingTargetAction(null);
+    setBusyKey(null);
   }, [state.phase, state.turnNumber]);
 
   const isMyTurn = !!myPlayer && state.turnPlayerId === myPlayer.id;
   const interactive = isMyTurn && state.phase === "awaiting_action" && !myPlayer!.eliminated;
   const mustCoup = !!myPlayer && myPlayer.coins >= 10;
+  const busy = busyKey !== null;
 
-  async function run(fn: () => Promise<void>) {
-    setBusy(true);
+  async function run(key: string, fn: () => Promise<void>) {
+    setBusyKey(key);
     try {
       await fn();
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   }
 
@@ -69,7 +73,7 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
                 type="button"
                 disabled={busy}
                 onClick={() =>
-                  run(async () => {
+                  run(t.id, async () => {
                     await onDeclareAction(pendingTargetAction, t.id);
                     setPendingTargetAction(null);
                   })
@@ -77,10 +81,10 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
                 className="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-panel-foreground/10 bg-panel-hover px-4 py-3 text-panel-foreground transition-colors hover:border-primary hover:bg-primary-tint disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
                   style={{ backgroundColor: avatarColor(t.name) }}
                 >
-                  {initials(t.name)}
+                  {busyKey === t.id ? <SpinnerIcon className="h-5 w-5 animate-spin" /> : initials(t.name)}
                 </span>
                 <span className="text-sm font-medium">{t.name}</span>
               </button>
@@ -102,6 +106,7 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
           const ruleLocked = mustCoup ? action !== "coup" : !affordable;
           const clickable = interactive && !ruleLocked;
           const isCoup = action === "coup";
+          const isBusy = busyKey === action;
 
           return (
             <button
@@ -110,7 +115,7 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
               disabled={busy || !clickable}
               onClick={() =>
                 clickable &&
-                run(async () => {
+                run(action, async () => {
                   if (meta.needsTarget) {
                     setPendingTargetAction(action);
                   } else {
@@ -118,12 +123,15 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
                   }
                 })
               }
-              className={`flex min-w-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-colors ${
+              className={`relative flex min-w-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-colors ${
                 isCoup ? "border-primary bg-primary-tint" : "border-panel-foreground/10 bg-panel"
               } ${clickable ? "cursor-pointer hover:border-primary hover:bg-primary-tint" : "cursor-default"} ${
                 !interactive || ruleLocked ? "opacity-50" : ""
               }`}
             >
+              {isBusy && (
+                <SpinnerIcon className={`absolute top-3 right-3 h-4 w-4 animate-spin ${meta.color}`} />
+              )}
               <Icon className={`h-6 w-6 ${meta.color}`} />
               <span
                 className={`wrap-break-word font-semibold ${isCoup ? "text-primary" : "text-panel-foreground"}`}

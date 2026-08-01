@@ -19,6 +19,7 @@ import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
 import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
 import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
+import { SurveyShowdownRoomSkeleton } from "@/components/SurveyShowdown/RoomSkeleton";
 import { Switch } from "@/components/ui/Switch";
 import {
   advanceRound,
@@ -491,7 +492,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
           }`}
         >
           {loading ? (
-            <p className="mx-auto text-white/70">Loading game…</p>
+            <SurveyShowdownRoomSkeleton />
           ) : !state ? (
             <p className="mx-auto text-white/70">Couldn&apos;t find that room.</p>
           ) : locked ? (

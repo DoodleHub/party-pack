@@ -9,6 +9,7 @@ import {
   CrownIcon,
   EyeIcon,
   ShieldIcon,
+  SpinnerIcon,
   SwordIcon,
   TrophyIcon,
   UserIcon,
@@ -123,6 +124,7 @@ export function GameLogPanel({ roomId, players, senderId, enableChat }: GameLogP
   const events = useGameLog(roomId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
 
@@ -160,9 +162,11 @@ export function GameLogPanel({ roomId, players, senderId, enableChat }: GameLogP
 
   async function handleSend() {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || sending) return;
     setDraft("");
+    setSending(true);
     await sendChatMessage(roomId, text);
+    setSending(false);
   }
 
   const title = enableChat ? "Chat" : "Game Log";
@@ -198,10 +202,15 @@ export function GameLogPanel({ roomId, players, senderId, enableChat }: GameLogP
           <button
             type="button"
             onClick={handleSend}
+            disabled={sending || !draft.trim()}
             aria-label="Send message"
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ArrowRightIcon className="h-4 w-4" />
+            {sending ? (
+              <SpinnerIcon className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRightIcon className="h-4 w-4" />
+            )}
           </button>
         </div>
       )}

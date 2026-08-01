@@ -150,9 +150,10 @@ export function AnswerInputBar({ isMyTurn, onSubmitAnswer }: AnswerInputBarProps
           variant="primary"
           size="lg"
           onClick={handleSubmit}
-          disabled={!isMyTurn || submitting || !draft.trim()}
+          loading={submitting}
+          disabled={!isMyTurn || !draft.trim()}
         >
-          {submitting ? "Sending…" : "Submit"}
+          Submit
         </Button>
       </div>
     </div>
@@ -225,15 +226,9 @@ export function GameStage({
             <Button
               variant="primary"
               onClick={allRevealed ? handleNextRound : handleRevealAll}
-              disabled={resolving}
+              loading={resolving}
             >
-              {resolving
-                ? "Working…"
-                : allRevealed
-                  ? isLastRound
-                    ? "See Results"
-                    : "Next Round"
-                  : "Reveal All Answers"}
+              {allRevealed ? (isLastRound ? "See Results" : "Next Round") : "Reveal All Answers"}
             </Button>
           ) : (
             <p className="text-sm text-white/60">

@@ -11,6 +11,7 @@ import { GameRulesModal } from "@/components/Koup/GameRulesModal";
 import { InfluencePanel } from "@/components/Koup/InfluencePanel";
 import { PasswordGate } from "@/components/Koup/PasswordGate";
 import { RightPanel } from "@/components/Koup/RightPanel";
+import { KoupRoomSkeleton } from "@/components/Koup/RoomSkeleton";
 import { StatusPanel } from "@/components/Koup/StatusPanel";
 import { WaitingRoom } from "@/components/Koup/WaitingRoom";
 import {
@@ -335,7 +336,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
 
         <div className="mx-auto flex w-full max-w-[1800px] flex-1 items-start px-6 pb-16 sm:px-10">
           {loading ? (
-            <p className="mx-auto text-panel-muted">Loading game…</p>
+            <KoupRoomSkeleton />
           ) : !state ? (
             <p className="mx-auto text-panel-muted">Couldn&apos;t find that room.</p>
           ) : locked ? (

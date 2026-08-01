@@ -124,7 +124,8 @@ export function WaitingRoom({
               variant="primary"
               className="mt-4 w-full"
               onClick={handleJoin}
-              disabled={pending || isFull}
+              loading={pending}
+              disabled={isFull}
             >
               {isFull ? "Table Full" : "Join Table"}
             </Button>
@@ -152,7 +153,7 @@ export function WaitingRoom({
       <div className="mx-auto">
         {isHost ? (
           <div className="flex flex-col items-center gap-2">
-            <Button variant="primary" size="lg" onClick={handleStart} disabled={pending || !canStart}>
+            <Button variant="primary" size="lg" onClick={handleStart} loading={pending} disabled={!canStart}>
               Start Game
             </Button>
             {!canStart && <p className="text-xs text-panel-muted">You need at least 2 players to start.</p>}

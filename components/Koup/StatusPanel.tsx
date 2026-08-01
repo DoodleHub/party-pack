@@ -44,7 +44,9 @@ export function StatusPanel({
   onChooseInfluence,
   onResolveExchange,
 }: StatusPanelProps) {
-  const [busy, setBusy] = useState(false);
+  // Tracks which specific button triggered the in-flight RPC, so only that
+  // one shows a spinner instead of every button in the card going busy.
+  const [busyAction, setBusyAction] = useState<string | null>(null);
   // "Let it pass" is a cosmetic local acknowledgment only — the round still resolves the
   // same way it does today (via the response timer, or someone else challenging/blocking).
   const [passed, setPassed] = useState(false);
@@ -54,14 +56,17 @@ export function StatusPanel({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local UI state whenever the server-driven phase moves on
     setPassed(false);
     setKeepIds([]);
+    setBusyAction(null);
   }, [state.phase, state.turnNumber]);
 
-  async function run(fn: () => Promise<void>) {
-    setBusy(true);
+  const busy = busyAction !== null;
+
+  async function run(key: string, fn: () => Promise<void>) {
+    setBusyAction(key);
     try {
       await fn();
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
 
@@ -147,7 +152,12 @@ export function StatusPanel({
             <Countdown deadline={state.responseDeadline} />
             <div className="flex flex-wrap justify-center gap-3">
               {canChallenge && (
-                <Button variant="primary" disabled={busy} onClick={() => run(onChallengeAction)}>
+                <Button
+                  variant="primary"
+                  disabled={busy}
+                  loading={busyAction === "challenge"}
+                  onClick={() => run("challenge", onChallengeAction)}
+                >
                   <SwordIcon className="h-4 w-4" />
                   Challenge
                 </Button>
@@ -157,7 +167,8 @@ export function StatusPanel({
                   key={character}
                   variant="panel"
                   disabled={busy}
-                  onClick={() => run(() => onBlockAction(character))}
+                  loading={busyAction === `block-${character}`}
+                  onClick={() => run(`block-${character}`, () => onBlockAction(character))}
                 >
                   <ShieldIcon className="h-4 w-4" />
                   Block with {CHARACTER_META[character].label}
@@ -216,7 +227,12 @@ export function StatusPanel({
             <p className="text-sm text-panel-muted">No one has challenged the block yet.</p>
             <Countdown deadline={state.responseDeadline} />
             <div className="flex flex-wrap justify-center gap-3">
-              <Button variant="primary" disabled={busy} onClick={() => run(onChallengeBlock)}>
+              <Button
+                variant="primary"
+                disabled={busy}
+                loading={busyAction === "challenge-block"}
+                onClick={() => run("challenge-block", onChallengeBlock)}
+              >
                 <SwordIcon className="h-4 w-4" />
                 Challenge the Block
               </Button>
@@ -280,7 +296,8 @@ export function StatusPanel({
         <Button
           variant="primary"
           disabled={busy || keepIds.length !== keepCount}
-          onClick={() => run(() => onResolveExchange(keepIds))}
+          loading={busyAction === "resolve-exchange"}
+          onClick={() => run("resolve-exchange", () => onResolveExchange(keepIds))}
         >
           Confirm
         </Button>
@@ -310,7 +327,8 @@ export function StatusPanel({
               key={card.id}
               character={card.character}
               revealed
-              onClick={() => run(() => onChooseInfluence(card.id))}
+              dim={busy}
+              onClick={busy ? undefined : () => run(`reveal-${card.id}`, () => onChooseInfluence(card.id))}
             />
           ))}
         </div>

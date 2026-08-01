@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowRightIcon } from "@/components/ui/Icon";
+import { ArrowRightIcon, SpinnerIcon } from "@/components/ui/Icon";
 import { fetchChatMessages, sendChatMessage, subscribeToChat } from "@/components/Koup/data";
 import type { ChatMessage } from "@/components/Koup/types";
 
@@ -13,6 +13,7 @@ interface ChatPanelProps {
 export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
 
@@ -47,9 +48,11 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
 
   async function handleSend() {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || sending) return;
     setDraft("");
+    setSending(true);
     await sendChatMessage(roomId, text);
+    setSending(false);
   }
 
   return (
@@ -95,10 +98,15 @@ export function ChatPanel({ roomId, senderId }: ChatPanelProps) {
         <button
           type="button"
           onClick={handleSend}
+          disabled={sending || !draft.trim()}
           aria-label="Send message"
-          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover"
+          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <ArrowRightIcon className="h-4 w-4" />
+          {sending ? (
+            <SpinnerIcon className="h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowRightIcon className="h-4 w-4" />
+          )}
         </button>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { ArrowRightIcon, ChevronDownIcon, PlusIcon, SearchIcon, UsersIcon } from "@/components/ui/Icon";
 import { RoomRow } from "@/components/GameLobby/RoomRow";
 import { AboutGameSidebar } from "@/components/GameLobby/AboutGameSidebar";
+import { RoomBrowserSkeleton } from "@/components/GameLobby/LobbySkeleton";
 import type { GameLobbyInfo, LobbyRoom } from "@/components/GameLobby/types";
 import type { GameCover } from "@/lib/games";
 
@@ -139,22 +140,11 @@ export function GameLobby({ game, rooms, yourRoomCode }: GameLobbyProps) {
           </div>
         </section>
 
-        <Suspense fallback={<RoomBrowserFallback />}>
+        <Suspense fallback={<RoomBrowserSkeleton />}>
           <RoomBrowser game={game} rooms={rooms} yourRoomCode={yourRoomCode} />
         </Suspense>
       </main>
     </div>
-  );
-}
-
-function RoomBrowserFallback() {
-  return (
-    <section className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
-      <div className="flex flex-col gap-6">
-        <div className="h-11 w-full animate-pulse rounded-xl bg-surface-alt sm:w-52" />
-        <p className="py-16 text-center text-muted">Loading rooms…</p>
-      </div>
-    </section>
   );
 }
 

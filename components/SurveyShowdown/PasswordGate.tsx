@@ -41,8 +41,8 @@ export function PasswordGate({ roomName, onSubmit }: PasswordGateProps) {
         className="h-11 w-full rounded-xl border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none"
       />
       {error && <p className="text-sm text-red-400">Incorrect password. Try again.</p>}
-      <Button variant="primary" className="w-full" onClick={handleSubmit} disabled={checking}>
-        {checking ? "Checking…" : "Enter Room"}
+      <Button variant="primary" className="w-full" onClick={handleSubmit} loading={checking}>
+        Enter Room
       </Button>
     </div>
   );
