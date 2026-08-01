@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRightIcon, LockIcon } from "@/components/ui/Icon";
 import { ActionBar } from "@/components/Koup/ActionBar";
-import { ChatModal } from "@/components/Koup/ChatModal";
 import { DeckPanel } from "@/components/Koup/DeckPanel";
 import { GameInfoSidebar } from "@/components/Koup/GameInfoSidebar";
 import { GameOverScreen } from "@/components/Koup/GameOverScreen";
@@ -331,7 +330,6 @@ export function KoupGame({ roomCode }: KoupGameProps) {
 
           <div className="flex items-center gap-3">
             <GameRulesModal />
-            {state?.enableChat && <ChatModal roomId={state.roomId} senderId={userId ?? "spectator"} />}
           </div>
         </div>
 
@@ -394,7 +392,12 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                 <ActionBar state={state} myPlayer={myPlayer} onDeclareAction={handleDeclareAction} />
               </div>
 
-              <RightPanel roomId={state.roomId} players={state.players} />
+              <RightPanel
+                roomId={state.roomId}
+                players={state.players}
+                senderId={userId ?? "spectator"}
+                enableChat={state.enableChat}
+              />
             </div>
           )}
         </div>

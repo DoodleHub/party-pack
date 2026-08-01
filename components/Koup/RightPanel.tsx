@@ -7,12 +7,14 @@ import type { Player } from "@/components/Koup/types";
 interface RightPanelProps {
   roomId: string;
   players: Player[];
+  senderId: string;
+  enableChat: boolean;
 }
 
-export function RightPanel({ roomId, players }: RightPanelProps) {
+export function RightPanel({ roomId, players, senderId, enableChat }: RightPanelProps) {
   return (
     <div className="flex w-full flex-col gap-4 xl:w-72 xl:shrink-0">
-      <GameLogPanel roomId={roomId} players={players} />
+      <GameLogPanel roomId={roomId} players={players} senderId={senderId} enableChat={enableChat} />
       <QuickReferencePanel />
     </div>
   );

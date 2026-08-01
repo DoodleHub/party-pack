@@ -1,7 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AlertTriangleIcon,
   ArrowRightIcon,
@@ -15,8 +14,9 @@ import {
   UserIcon,
 } from "@/components/ui/Icon";
 import { avatarColor, initials } from "@/lib/avatar";
+import { fetchChatMessages, sendChatMessage, subscribeToChat } from "@/components/Koup/data";
 import { matchLogActor, useGameLog } from "@/components/Koup/useGameLog";
-import type { LogEvent, Player } from "@/components/Koup/types";
+import type { ChatMessage, LogEvent, Player } from "@/components/Koup/types";
 
 const KIND_ICON: Record<string, typeof CrownIcon> = {
   income: CoinsIcon,
@@ -37,6 +37,23 @@ const KIND_ICON: Record<string, typeof CrownIcon> = {
   turn: ArrowRightIcon,
   system: CrownIcon,
 };
+
+type FeedItem =
+  | { id: string; createdAt: string; type: "log"; event: LogEvent }
+  | { id: string; createdAt: string; type: "chat"; message: ChatMessage };
+
+function mergeFeed(events: LogEvent[], messages: ChatMessage[]): FeedItem[] {
+  const items: FeedItem[] = [
+    ...events.map((event): FeedItem => ({ id: `log-${event.id}`, createdAt: event.createdAt, type: "log", event })),
+    ...messages.map((message): FeedItem => ({
+      id: `chat-${message.id}`,
+      createdAt: message.createdAt,
+      type: "chat",
+      message,
+    })),
+  ];
+  return items.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
 
 function LogEntryRow({ event, players }: { event: LogEvent; players: Player[] }) {
   const actor = matchLogActor(event.text, players);
@@ -70,77 +87,122 @@ function LogEntryRow({ event, players }: { event: LogEvent; players: Player[] })
   );
 }
 
-export function GameLogPanel({ roomId, players }: { roomId: string; players: Player[] }) {
+function ChatMessageRow({ message, senderId }: { message: ChatMessage; senderId: string }) {
+  if (message.userId === null) {
+    return <p className="text-center text-xs italic text-panel-muted">{message.text}</p>;
+  }
+
+  return (
+    <p className="text-sm wrap-break-word">
+      <span
+        className={`font-semibold ${message.userId === senderId ? "text-primary" : "text-panel-foreground"}`}
+      >
+        {message.name}:
+      </span>{" "}
+      <span className="text-panel-foreground/90">{message.text}</span>
+    </p>
+  );
+}
+
+function FeedItemRow({ item, players, senderId }: { item: FeedItem; players: Player[]; senderId: string }) {
+  return item.type === "log" ? (
+    <LogEntryRow event={item.event} players={players} />
+  ) : (
+    <ChatMessageRow message={item.message} senderId={senderId} />
+  );
+}
+
+interface GameLogPanelProps {
+  roomId: string;
+  players: Player[];
+  senderId: string;
+  enableChat: boolean;
+}
+
+export function GameLogPanel({ roomId, players, senderId, enableChat }: GameLogPanelProps) {
   const events = useGameLog(roomId);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
+
+  useEffect(() => {
+    if (!enableChat) return;
+    let cancelled = false;
+    fetchChatMessages(roomId).then((history) => {
+      if (!cancelled) setMessages(history);
+    });
+    const unsubscribe = subscribeToChat(roomId, (message) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        return [...prev, message].slice(-200);
+      });
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [roomId, enableChat]);
+
+  const feed = mergeFeed(events, enableChat ? messages : []);
 
   useLayoutEffect(() => {
     const list = listRef.current;
     if (list && stickToBottomRef.current) {
       list.scrollTop = list.scrollHeight;
     }
-  }, [events]);
+  }, [feed.length]);
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const list = e.currentTarget;
     stickToBottomRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < 24;
   }
 
+  async function handleSend() {
+    const text = draft.trim();
+    if (!text) return;
+    setDraft("");
+    await sendChatMessage(roomId, text);
+  }
+
+  const title = enableChat ? "Chat" : "Game Log";
+
   return (
     <div className="rounded-2xl border border-panel-foreground/10 bg-panel p-5 text-panel-foreground shadow-sm">
-      <h3 className="border-b-2 border-primary pb-2 text-sm font-semibold text-panel-foreground">
-        Game Log
-      </h3>
+      <h3 className="border-b-2 border-primary pb-2 text-sm font-semibold text-panel-foreground">{title}</h3>
 
       <div
         ref={listRef}
         onScroll={handleScroll}
         className="mt-3 flex h-72 flex-col gap-3 overflow-y-auto pr-1"
       >
-        {events.length === 0 ? (
+        {feed.length === 0 ? (
           <p className="text-sm text-panel-muted">No events yet.</p>
         ) : (
-          events.slice(-30).map((event) => <LogEntryRow key={event.id} event={event} players={players} />)
+          feed.slice(-30).map((item) => <FeedItemRow key={item.id} item={item} players={players} senderId={senderId} />)
         )}
       </div>
 
-      <Button
-        variant="panel"
-        className="mt-4 w-full"
-        onClick={() => setModalOpen(true)}
-        disabled={events.length === 0}
-      >
-        See Full Log
-      </Button>
-
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setModalOpen(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-panel-foreground/10 bg-panel p-6 text-panel-foreground shadow-2xl"
+      {enableChat && (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSend();
+            }}
+            placeholder="Say something…"
+            className="h-9 min-w-0 flex-1 rounded-full border border-panel-foreground/10 bg-panel-hover px-4 text-sm text-panel-foreground placeholder:text-panel-muted focus:border-primary focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            aria-label="Send message"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover"
           >
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">Full Game Log</h2>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                aria-label="Close"
-                className="cursor-pointer rounded-full p-1 text-panel-muted hover:bg-panel-hover hover:text-panel-foreground"
-              >
-                <CloseIcon className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="mt-4 flex flex-col gap-3 overflow-y-auto">
-              {events.map((event) => (
-                <LogEntryRow key={event.id} event={event} players={players} />
-              ))}
-            </div>
-          </div>
+            <ArrowRightIcon className="h-4 w-4" />
+          </button>
         </div>
       )}
     </div>
