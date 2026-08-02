@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import surveyShowdownStage from "@/public/games/survey-showdown-stage.png";
 import {
   ArrowRightIcon,
   ClockIcon,
@@ -424,16 +422,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   }
 
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden bg-[#050b1f]">
-      <Image
-        src={surveyShowdownStage}
-        alt=""
-        fill
-        priority
-        className="object-cover"
-        sizes="100vw"
-      />
-      <div className="absolute inset-0 bg-black/25" />
+    <div className="relative flex flex-1 flex-col overflow-hidden bg-linear-to-br from-[#0b1f4d] via-[#122d6b] to-[#0a1636]">
 
       <div className="relative z-10 flex flex-1 flex-col">
         {!tvMode && (
