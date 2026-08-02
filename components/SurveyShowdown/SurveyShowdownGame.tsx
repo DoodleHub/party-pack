@@ -515,6 +515,11 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
                   <ChatPanel roomId={state.roomId} senderId={userId ?? "spectator"} />
                 </div>
               )}
+              {state.currentPrompt && (
+                <p className="w-full text-center text-sm font-semibold text-white/80">
+                  {state.currentPrompt}
+                </p>
+              )}
               <AnswerInputBar isMyTurn={isMyTurn} onSubmitAnswer={handleSubmitAnswer} />
             </div>
           ) : (
