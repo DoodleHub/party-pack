@@ -35,7 +35,13 @@ export function GameOverScreen({ state, senderId }: { state: RoomState; senderId
                 >
                   {initials(player.name)}
                 </span>
-                <span className="font-medium text-panel-foreground">{player.name}</span>
+                <span
+                  className={`font-medium ${
+                    player.id === state.winnerPlayerId ? "text-amber-900" : "text-panel-foreground"
+                  }`}
+                >
+                  {player.name}
+                </span>
               </span>
               <span className="flex items-center gap-1.5">
                 {player.revealedCards.map((c, i) => {

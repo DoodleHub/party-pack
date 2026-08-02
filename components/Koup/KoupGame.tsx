@@ -440,6 +440,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                   onChallengeBlock={handleChallengeBlock}
                   onChooseInfluence={handleChooseInfluence}
                   onResolveExchange={handleResolveExchange}
+                  compact={tvModeActive}
                 />
 
                 {actionError && (
@@ -454,10 +455,16 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                     coins={myPlayer?.coins ?? 0}
                     eliminated={myPlayer?.eliminated ?? false}
                     isPlayer={isPlayer}
+                    compact={tvModeActive}
                   />
                 )}
 
-                <ActionBar state={state} myPlayer={myPlayer} onDeclareAction={handleDeclareAction} />
+                <ActionBar
+                  state={state}
+                  myPlayer={myPlayer}
+                  onDeclareAction={handleDeclareAction}
+                  compact={tvModeActive}
+                />
               </div>
 
               <RightPanel

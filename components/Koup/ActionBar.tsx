@@ -21,9 +21,13 @@ interface ActionBarProps {
   state: RoomState;
   myPlayer: Player | null;
   onDeclareAction: (action: ActionType, targetPlayerId?: string) => Promise<void>;
+  // TV Mode on mobile: denser grid, smaller icons, and the description/rule
+  // text hidden — the full cards don't fit the screen without the side
+  // columns. Unused above the sm breakpoint, where the regular cards fit fine.
+  compact?: boolean;
 }
 
-export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) {
+export function ActionBar({ state, myPlayer, onDeclareAction, compact = false }: ActionBarProps) {
   const [pendingTargetAction, setPendingTargetAction] = useState<ActionType | null>(null);
   // Tracks which specific button (action or target) triggered the in-flight
   // RPC, so only that one shows a spinner instead of the whole bar going busy.
@@ -98,7 +102,11 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
   return (
     <div className="flex w-full flex-col items-center gap-3">
       <p className="text-sm font-semibold text-ink">Choose an action</p>
-      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div
+        className={`grid w-full gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 ${
+          compact ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
         {ACTION_ORDER.map((action) => {
           const meta = ACTION_META[action];
           const Icon = meta.icon;
@@ -123,23 +131,23 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
                   }
                 })
               }
-              className={`relative flex min-w-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-colors ${
-                isCoup ? "border-primary bg-primary-tint" : "border-panel-foreground/10 bg-panel"
-              } ${clickable ? "cursor-pointer hover:border-primary hover:bg-primary-tint" : "cursor-default"} ${
-                !interactive || ruleLocked ? "opacity-50" : ""
-              }`}
+              className={`relative flex min-w-0 flex-col rounded-2xl border text-left transition-colors ${
+                compact ? "gap-1 p-2 sm:gap-2 sm:p-4" : "gap-2 p-4"
+              } ${isCoup ? "border-primary bg-primary-tint" : "border-panel-foreground/10 bg-panel"} ${
+                clickable ? "cursor-pointer hover:border-primary hover:bg-primary-tint" : "cursor-default"
+              } ${!interactive || ruleLocked ? "opacity-50" : ""}`}
             >
               {isBusy && (
                 <SpinnerIcon className={`absolute top-3 right-3 h-4 w-4 animate-spin ${meta.color}`} />
               )}
-              <Icon className={`h-6 w-6 ${meta.color}`} />
+              <Icon className={`${compact ? "h-5 w-5 sm:h-6 sm:w-6" : "h-6 w-6"} ${meta.color}`} />
               <span
                 className={`wrap-break-word font-semibold ${isCoup ? "text-primary" : "text-panel-foreground"}`}
               >
                 {meta.label}
               </span>
               <span
-                className={`flex flex-col gap-0.5 wrap-break-word text-xs ${
+                className={`${compact ? "hidden sm:flex" : "flex"} flex-col gap-0.5 wrap-break-word text-xs ${
                   isCoup ? "text-primary/80" : "text-panel-muted"
                 }`}
               >
@@ -148,7 +156,7 @@ export function ActionBar({ state, myPlayer, onDeclareAction }: ActionBarProps) 
                 ))}
               </span>
               <span
-                className={`flex flex-col gap-0.5 wrap-break-word text-[11px] ${
+                className={`${compact ? "hidden sm:flex" : "flex"} flex-col gap-0.5 wrap-break-word text-[11px] ${
                   isCoup ? "font-semibold text-rose-600" : "text-panel-muted"
                 }`}
               >

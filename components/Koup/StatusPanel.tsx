@@ -8,9 +8,11 @@ import { ACTION_META, CHARACTER_META } from "@/components/Koup/characters";
 import { PlayingCard } from "@/components/Koup/PlayingCard";
 import type { Character, Player, RoomState } from "@/components/Koup/types";
 
-function Card({ children }: { children: React.ReactNode }) {
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="w-full rounded-2xl border border-panel-foreground/10 bg-panel p-6 text-panel-foreground shadow-sm">
+    <div
+      className={`w-full rounded-2xl border border-panel-foreground/10 bg-panel p-6 text-panel-foreground shadow-sm ${className}`}
+    >
       <div className="mx-auto flex max-w-md flex-col items-center gap-3 text-center">{children}</div>
     </div>
   );
@@ -33,6 +35,9 @@ interface StatusPanelProps {
   onChallengeBlock: () => Promise<void>;
   onChooseInfluence: (cardId: string) => Promise<void>;
   onResolveExchange: (cardIds: string[]) => Promise<void>;
+  // TV Mode on mobile: "Waiting for X's move…" isn't worth a full card on a
+  // cramped screen when it's not your turn — skip it below the sm breakpoint.
+  compact?: boolean;
 }
 
 export function StatusPanel({
@@ -43,6 +48,7 @@ export function StatusPanel({
   onChallengeBlock,
   onChooseInfluence,
   onResolveExchange,
+  compact = false,
 }: StatusPanelProps) {
   // Tracks which specific button triggered the in-flight RPC, so only that
   // one shows a spinner instead of every button in the card going busy.
@@ -95,13 +101,13 @@ export function StatusPanel({
     const isMyTurn = state.turnPlayerId === myPlayer.id;
     if (!isMyTurn) {
       return (
-        <Card>
+        <Card className={compact ? "hidden sm:block" : ""}>
           <Waiting text={`Waiting for ${nameOf(state.turnPlayerId)}'s move…`} deadline={state.responseDeadline} />
         </Card>
       );
     }
     return (
-      <Card>
+      <Card className={compact ? "hidden sm:block" : ""}>
         <p className="text-sm font-semibold text-primary">It&apos;s your turn!</p>
         <p className="text-sm text-panel-muted">Choose an action below.</p>
         <Countdown deadline={state.responseDeadline} />
