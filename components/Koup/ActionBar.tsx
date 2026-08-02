@@ -25,9 +25,13 @@ interface ActionBarProps {
   // text hidden — the full cards don't fit the screen without the side
   // columns. Unused above the sm breakpoint, where the regular cards fit fine.
   compact?: boolean;
+  // Host TV Mode: this viewer's own hand/coins are hidden, so the "must
+  // Coup" banner should call out whichever player is actually on turn by
+  // name instead of assuming it's about the viewer.
+  hostTvMode?: boolean;
 }
 
-export function ActionBar({ state, myPlayer, onDeclareAction, compact = false }: ActionBarProps) {
+export function ActionBar({ state, myPlayer, onDeclareAction, compact = false, hostTvMode = false }: ActionBarProps) {
   const [pendingTargetAction, setPendingTargetAction] = useState<ActionType | null>(null);
   // Tracks which specific button (action or target) triggered the in-flight
   // RPC, so only that one shows a spinner instead of the whole bar going busy.
@@ -42,6 +46,8 @@ export function ActionBar({ state, myPlayer, onDeclareAction, compact = false }:
   const isMyTurn = !!myPlayer && state.turnPlayerId === myPlayer.id;
   const interactive = isMyTurn && state.phase === "awaiting_action" && !myPlayer!.eliminated;
   const mustCoup = !!myPlayer && myPlayer.coins >= 10;
+  const turnPlayer = state.players.find((p) => p.id === state.turnPlayerId) ?? null;
+  const turnPlayerMustCoup = !!turnPlayer && turnPlayer.coins >= 10;
   const busy = busyKey !== null;
 
   async function run(key: string, fn: () => Promise<void>) {
@@ -169,14 +175,19 @@ export function ActionBar({ state, myPlayer, onDeclareAction, compact = false }:
         })}
       </div>
 
-      <div
-        className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm ${
-          mustCoup ? "bg-amber-100 font-medium text-amber-700" : "bg-surface-alt text-muted"
-        }`}
-      >
-        <AlertTriangleIcon className="h-4 w-4 shrink-0" />
-        10+ coins? You must perform a Coup.
-      </div>
+      {hostTvMode
+        ? turnPlayerMustCoup && (
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-medium text-amber-700">
+              <AlertTriangleIcon className="h-4 w-4 shrink-0" />
+              10+ coins! {turnPlayer!.name} must perform a Coup.
+            </div>
+          )
+        : mustCoup && (
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-medium text-amber-700">
+              <AlertTriangleIcon className="h-4 w-4 shrink-0" />
+              10+ coins? You must perform a Coup.
+            </div>
+          )}
     </div>
   );
 }

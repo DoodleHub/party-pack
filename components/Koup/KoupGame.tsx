@@ -11,6 +11,7 @@ import { GameOverScreen } from "@/components/Koup/GameOverScreen";
 import { GameRulesModal } from "@/components/Koup/GameRulesModal";
 import { InfluencePanel } from "@/components/Koup/InfluencePanel";
 import { PasswordGate } from "@/components/Koup/PasswordGate";
+import { QuickReferencePanel } from "@/components/Koup/QuickReferencePanel";
 import { RightPanel } from "@/components/Koup/RightPanel";
 import { KoupRoomSkeleton } from "@/components/Koup/RoomSkeleton";
 import { StatusPanel } from "@/components/Koup/StatusPanel";
@@ -379,6 +380,7 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                 {hostTvMode ? "Exit Host TV Mode" : "Host TV Mode"}
               </button>
             )}
+            <GameRulesModal />
             <button
               type="button"
               onClick={() => setTvMode(false)}
@@ -418,61 +420,116 @@ export function KoupGame({ roomCode }: KoupGameProps) {
                 tvModeActive ? "xl:grid-cols-[1fr_18rem]" : "xl:grid-cols-[18rem_1fr_18rem]"
               }`}
             >
-              {!tvModeActive && (
-                <GameInfoSidebar
-                  players={state.players}
-                  hostId={state.hostId}
-                  turnPlayerId={state.turnPlayerId}
-                  currentUserId={userId}
-                  onlineUserIds={onlineUserIds}
-                  maxPlayers={state.maxPlayers}
-                />
-              )}
+              {tvModeActive ? (
+                <>
+                  <div className="flex min-w-0 flex-col items-center gap-6 xl:col-start-1 xl:row-start-1">
+                    <StatusPanel
+                      state={state}
+                      myPlayer={myPlayer}
+                      onChallengeAction={handleChallengeAction}
+                      onBlockAction={handleBlockAction}
+                      onChallengeBlock={handleChallengeBlock}
+                      onChooseInfluence={handleChooseInfluence}
+                      onResolveExchange={handleResolveExchange}
+                      compact
+                    />
 
-              <div className="flex min-w-0 flex-col items-center gap-6">
-                {!tvModeActive && <DeckPanel deckCount={state.deckCount} discardCount={state.discardCount} />}
+                    {actionError && (
+                      <p className="w-full rounded-xl bg-red-100 px-4 py-2 text-center text-sm font-medium text-red-700">
+                        {actionError}
+                      </p>
+                    )}
+                  </div>
 
-                <StatusPanel
-                  state={state}
-                  myPlayer={myPlayer}
-                  onChallengeAction={handleChallengeAction}
-                  onBlockAction={handleBlockAction}
-                  onChallengeBlock={handleChallengeBlock}
-                  onChooseInfluence={handleChooseInfluence}
-                  onResolveExchange={handleResolveExchange}
-                  compact={tvModeActive}
-                />
+                  <div className="xl:col-start-2 xl:row-start-1 xl:row-span-2">
+                    <RightPanel
+                      roomId={state.roomId}
+                      players={state.players}
+                      senderId={userId ?? "spectator"}
+                      enableChat={state.enableChat}
+                      tvModeActive={tvModeActive}
+                    />
+                  </div>
 
-                {actionError && (
-                  <p className="w-full rounded-xl bg-red-100 px-4 py-2 text-center text-sm font-medium text-red-700">
-                    {actionError}
-                  </p>
-                )}
+                  <div className="flex min-w-0 flex-col items-center gap-6 xl:col-start-1 xl:row-start-2">
+                    {!hostTvModeActive && (
+                      <InfluencePanel
+                        hand={state.myHand}
+                        coins={myPlayer?.coins ?? 0}
+                        eliminated={myPlayer?.eliminated ?? false}
+                        isPlayer={isPlayer}
+                        compact
+                      />
+                    )}
 
-                {!hostTvModeActive && (
-                  <InfluencePanel
-                    hand={state.myHand}
-                    coins={myPlayer?.coins ?? 0}
-                    eliminated={myPlayer?.eliminated ?? false}
-                    isPlayer={isPlayer}
-                    compact={tvModeActive}
+                    <ActionBar
+                      state={state}
+                      myPlayer={myPlayer}
+                      onDeclareAction={handleDeclareAction}
+                      compact
+                      hostTvMode={hostTvModeActive}
+                    />
+                  </div>
+
+                  <div className="w-full xl:hidden">
+                    <QuickReferencePanel />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <GameInfoSidebar
+                    players={state.players}
+                    hostId={state.hostId}
+                    turnPlayerId={state.turnPlayerId}
+                    currentUserId={userId}
+                    onlineUserIds={onlineUserIds}
+                    maxPlayers={state.maxPlayers}
                   />
-                )}
 
-                <ActionBar
-                  state={state}
-                  myPlayer={myPlayer}
-                  onDeclareAction={handleDeclareAction}
-                  compact={tvModeActive}
-                />
-              </div>
+                  <div className="flex min-w-0 flex-col items-center gap-6">
+                    <DeckPanel deckCount={state.deckCount} discardCount={state.discardCount} />
 
-              <RightPanel
-                roomId={state.roomId}
-                players={state.players}
-                senderId={userId ?? "spectator"}
-                enableChat={state.enableChat}
-              />
+                    <StatusPanel
+                      state={state}
+                      myPlayer={myPlayer}
+                      onChallengeAction={handleChallengeAction}
+                      onBlockAction={handleBlockAction}
+                      onChallengeBlock={handleChallengeBlock}
+                      onChooseInfluence={handleChooseInfluence}
+                      onResolveExchange={handleResolveExchange}
+                    />
+
+                    {actionError && (
+                      <p className="w-full rounded-xl bg-red-100 px-4 py-2 text-center text-sm font-medium text-red-700">
+                        {actionError}
+                      </p>
+                    )}
+
+                    {!hostTvModeActive && (
+                      <InfluencePanel
+                        hand={state.myHand}
+                        coins={myPlayer?.coins ?? 0}
+                        eliminated={myPlayer?.eliminated ?? false}
+                        isPlayer={isPlayer}
+                      />
+                    )}
+
+                    <ActionBar
+                      state={state}
+                      myPlayer={myPlayer}
+                      onDeclareAction={handleDeclareAction}
+                      hostTvMode={hostTvModeActive}
+                    />
+                  </div>
+
+                  <RightPanel
+                    roomId={state.roomId}
+                    players={state.players}
+                    senderId={userId ?? "spectator"}
+                    enableChat={state.enableChat}
+                  />
+                </>
+              )}
             </div>
           )}
         </div>

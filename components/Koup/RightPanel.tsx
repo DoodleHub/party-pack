@@ -9,15 +9,16 @@ interface RightPanelProps {
   players: Player[];
   senderId: string;
   enableChat: boolean;
+  tvModeActive?: boolean;
 }
 
-export function RightPanel({ roomId, players, senderId, enableChat }: RightPanelProps) {
+export function RightPanel({ roomId, players, senderId, enableChat, tvModeActive }: RightPanelProps) {
   return (
     <div className="flex w-full flex-col gap-4 xl:w-72 xl:shrink-0">
       <div className="order-2 xl:order-1">
         <GameLogPanel roomId={roomId} players={players} senderId={senderId} enableChat={enableChat} />
       </div>
-      <div className="order-1 xl:order-2">
+      <div className={`order-1 xl:order-2 ${tvModeActive ? "hidden xl:block" : ""}`}>
         <QuickReferencePanel />
       </div>
     </div>
