@@ -138,7 +138,7 @@ export function WaitingRoom({
         </div>
 
         {room.enableChat && (
-          <div className="flex h-80 w-full flex-1 flex-col rounded-2xl border border-panel-foreground/10 bg-panel p-4 text-panel-foreground shadow-sm">
+          <div className="flex h-80 w-full flex-col rounded-2xl border border-panel-foreground/10 bg-panel p-4 text-panel-foreground shadow-sm sm:flex-1">
             <h2 className="mb-3 border-b border-panel-foreground/10 pb-3 text-sm font-semibold text-panel-muted">
               Chat
             </h2>
