@@ -212,8 +212,18 @@ export async function joinTeam(roomId: string, slot: 1 | 2): Promise<{ error?: s
   return error ? { error: error.message } : {};
 }
 
-export async function leaveTeam(roomId: string): Promise<{ error?: string }> {
-  const { error } = await supabase.rpc("survey_showdown_leave_team", { p_room_id: roomId });
+// `leavingRoom` distinguishes an explicit "Leave Team" click (unseat but stay
+// in the room — host duties/room must survive even solo) from actually
+// departing the room (tab close/navigate away), which should hand off/delete
+// the room when the departing user was the only seated player.
+export async function leaveTeam(
+  roomId: string,
+  leavingRoom = false,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("survey_showdown_leave_team", {
+    p_room_id: roomId,
+    p_leaving_room: leavingRoom,
+  });
   return error ? { error: error.message } : {};
 }
 

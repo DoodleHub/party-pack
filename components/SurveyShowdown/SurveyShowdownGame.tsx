@@ -17,6 +17,7 @@ import { AnswerInputBar, GameStage } from "@/components/SurveyShowdown/GameStage
 import { TeamSidebar, avatarColor, initials } from "@/components/SurveyShowdown/TeamSidebar";
 import { RoundSidebar } from "@/components/SurveyShowdown/RoundSidebar";
 import { WaitingRoom } from "@/components/SurveyShowdown/WaitingRoom";
+import { GameRulesModal } from "@/components/SurveyShowdown/GameRulesModal";
 import { PasswordGate } from "@/components/SurveyShowdown/PasswordGate";
 import { ChatPanel } from "@/components/SurveyShowdown/ChatPanel";
 import { SurveyShowdownRoomSkeleton } from "@/components/SurveyShowdown/RoomSkeleton";
@@ -342,11 +343,14 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
   // it: while waiting, free up the seat (which also hands off/deletes the
   // room if this was the host); once the game is in progress, seats stay put
   // but host duties still need to move to someone else if this was the host.
+  // Checked against isHostRef too (not just isPlayerRef): a host who already
+  // left their team via "Leave Team" is unseated but still needs this to run
+  // so the room gets reassigned/deleted on their actual departure.
   useEffect(() => {
     return () => {
       if (!roomIdRef.current) return;
-      if (statusRef.current === "waiting" && isPlayerRef.current) {
-        leaveTeam(roomIdRef.current);
+      if (statusRef.current === "waiting" && (isPlayerRef.current || isHostRef.current)) {
+        leaveTeam(roomIdRef.current, true);
       } else if (statusRef.current === "active" && isPlayerRef.current) {
         announceLeftGame(roomIdRef.current);
         if (isHostRef.current && userIdRef.current) {
@@ -476,6 +480,7 @@ export function SurveyShowdownGame({ roomCode }: SurveyShowdownGameProps) {
               </div>
               {state && <RoomCodeChip code={state.code} />}
               {state && <CopyRoomLinkButton code={state.code} />}
+              <GameRulesModal />
               {state?.status === "active" && (
                 <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur-md">
                   <span className="text-sm font-semibold">TV Mode</span>
