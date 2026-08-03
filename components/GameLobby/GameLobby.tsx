@@ -210,30 +210,36 @@ function RoomBrowser({ game, rooms, yourRoomCode }: GameLobbyProps) {
               className="w-full bg-transparent text-sm text-card-foreground placeholder:text-card-muted focus:outline-none"
             />
           </div>
-          <Select
-            label="Visibility"
-            value={visibility}
-            options={VISIBILITY_OPTIONS}
-            onChange={(value) => setFilter("visibility", value)}
-          />
-          <Select
-            label="Players"
-            value={players}
-            options={PLAYERS_OPTIONS}
-            onChange={(value) => setFilter("players", value)}
-          />
-          <Select
-            label="Status"
-            value={status}
-            options={STATUS_OPTIONS}
-            onChange={(value) => setFilter("status", value)}
-          />
-          <Select
-            label="Sort"
-            value={sort}
-            options={SORT_OPTIONS}
-            onChange={(value) => setFilter("sort", value)}
-          />
+          <div className="grid grid-cols-2 gap-2 sm:contents">
+            <Select
+              label="Visibility"
+              value={visibility}
+              options={VISIBILITY_OPTIONS}
+              onChange={(value) => setFilter("visibility", value)}
+              className="w-full sm:w-auto"
+            />
+            <Select
+              label="Players"
+              value={players}
+              options={PLAYERS_OPTIONS}
+              onChange={(value) => setFilter("players", value)}
+              className="w-full sm:w-auto"
+            />
+            <Select
+              label="Status"
+              value={status}
+              options={STATUS_OPTIONS}
+              onChange={(value) => setFilter("status", value)}
+              className="w-full sm:w-auto"
+            />
+            <Select
+              label="Sort"
+              value={sort}
+              options={SORT_OPTIONS}
+              onChange={(value) => setFilter("sort", value)}
+              className="w-full sm:w-auto"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

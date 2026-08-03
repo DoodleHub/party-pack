@@ -20,9 +20,9 @@ export function Select({ label, value, options, onChange, className = "" }: Sele
 
   return (
     <div
-      className={`relative inline-flex h-11 items-center rounded-xl border border-ink/10 bg-card pl-3 pr-7 text-sm whitespace-nowrap text-card-foreground ${className}`}
+      className={`relative inline-flex h-11 items-center overflow-hidden rounded-xl border border-ink/10 bg-card pl-3 pr-7 text-sm text-card-foreground ${className}`}
     >
-      <span className="pointer-events-none">
+      <span className="pointer-events-none truncate">
         <span className="text-card-muted">{label}: </span>
         <span className="font-medium">{selected?.label}</span>
       </span>
