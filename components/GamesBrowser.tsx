@@ -14,7 +14,7 @@ export function GamesBrowser() {
   }, [search]);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 pb-16 sm:px-10">
+    <section className="mx-auto w-full max-w-6xl px-6 py-16 sm:px-10">
       <div className="mb-8 flex h-13 max-w-md items-center gap-2 rounded-xl border border-ink/10 bg-card px-4">
         <SearchIcon className="h-4 w-4 shrink-0 text-card-muted" />
         <input
